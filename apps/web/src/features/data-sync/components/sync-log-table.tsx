@@ -225,6 +225,12 @@ function syncTypeLabel(syncType: string) {
   if (syncType === "STORE_OPENAPI_SYNC") {
     return "상가정보 OpenAPI";
   }
+  if (syncType === "REGION_MASTER_OPENAPI_SYNC") {
+    return "행정구역 마스터";
+  }
+  if (syncType === "CATEGORY_MASTER_OPENAPI_SYNC") {
+    return "업종 마스터";
+  }
   return syncType;
 }
 

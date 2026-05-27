@@ -2,7 +2,11 @@ import type { PageResponse } from "@/features/stores/types";
 
 export type SyncStatus = "RUNNING" | "SUCCESS" | "PARTIAL_SUCCESS" | "FAILED";
 
-export type SyncType = "STORE_CSV_IMPORT" | "STORE_OPENAPI_SYNC";
+export type SyncType =
+  | "STORE_CSV_IMPORT"
+  | "STORE_OPENAPI_SYNC"
+  | "REGION_MASTER_OPENAPI_SYNC"
+  | "CATEGORY_MASTER_OPENAPI_SYNC";
 
 export type StoreCsvRowError = {
   rowNumber: number;

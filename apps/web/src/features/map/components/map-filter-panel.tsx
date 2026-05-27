@@ -52,10 +52,10 @@ export function MapFilterPanel({
   onRadiusChange,
   onNearbySearch,
 }: MapFilterPanelProps) {
-  const selectedSido = regions.find((region) => region.sidoName === sido);
+  const selectedSido = regions.find((region) => region.sidoCode === sido);
   const sigunguOptions = selectedSido?.sigunguList ?? [];
   const selectedSigungu = sigunguOptions.find(
-    (option) => option.sigunguName === sigungu,
+    (option) => option.sigunguCode === sigungu,
   );
   const dongOptions = selectedSigungu?.dongList ?? [];
   const selectedLargeCategory = categories.find(
@@ -96,7 +96,7 @@ export function MapFilterPanel({
           >
             <option value="all">전체 시도</option>
             {regions.map((option) => (
-              <option key={option.sidoCode} value={option.sidoName}>
+              <option key={option.sidoCode} value={option.sidoCode}>
                 {option.sidoName}
               </option>
             ))}
@@ -116,7 +116,7 @@ export function MapFilterPanel({
           >
             <option value="all">전체 시군구</option>
             {sigunguOptions.map((option) => (
-              <option key={option.sigunguCode} value={option.sigunguName}>
+              <option key={option.sigunguCode} value={option.sigunguCode}>
                 {option.sigunguName}
               </option>
             ))}
@@ -136,7 +136,7 @@ export function MapFilterPanel({
           >
             <option value="all">전체 동</option>
             {dongOptions.map((option) => (
-              <option key={option.dongCode} value={option.dongName}>
+              <option key={option.dongCode} value={option.dongCode}>
                 {option.dongName}
               </option>
             ))}

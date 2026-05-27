@@ -8,6 +8,7 @@ import type {
   StoreOpenApiStatus,
   StoreOpenApiSyncPayload,
 } from "@/features/data-sync/types";
+import type { Region, StoreCategory } from "@/features/stores/types";
 
 type OpenApiSyncCardProps = {
   status?: StoreOpenApiStatus;
@@ -18,6 +19,9 @@ type OpenApiSyncCardProps = {
   onSync: (payload: StoreOpenApiSyncPayload) => void;
   onRefreshStatus: () => void;
   onToggleSchedule: (enabled: boolean) => void;
+  regions: Region[];
+  categories: StoreCategory[];
+  isFilterLoading: boolean;
 };
 
 const inputClassName =
@@ -32,45 +36,67 @@ export function OpenApiSyncCard({
   onSync,
   onRefreshStatus,
   onToggleSchedule,
+  regions,
+  categories,
+  isFilterLoading,
 }: OpenApiSyncCardProps) {
   const [operation, setOperation] =
     useState<StoreOpenApiSyncPayload["operation"]>("DONG");
-  const [sidoName, setSidoName] = useState("서울특별시");
-  const [sigunguName, setSigunguName] = useState("강남구");
-  const [dongName, setDongName] = useState("");
-  const [divId, setDivId] =
-    useState<NonNullable<StoreOpenApiSyncPayload["divId"]>>("signguCd");
-  const [key, setKey] = useState("11680");
+  const [sidoCode, setSidoCode] = useState("11");
+  const [sigunguCode, setSigunguCode] = useState("11680");
+  const [dongCode, setDongCode] = useState("all");
   const [radius, setRadius] = useState(500);
   const [cx, setCx] = useState(127.0276368);
   const [cy, setCy] = useState(37.4979502);
   const [changedDate, setChangedDate] = useState("");
-  const [categoryLargeCode, setCategoryLargeCode] = useState("");
-  const [categoryMediumCode, setCategoryMediumCode] = useState("");
-  const [categorySmallCode, setCategorySmallCode] = useState("");
+  const [categoryLargeCode, setCategoryLargeCode] = useState("all");
+  const [categoryMediumCode, setCategoryMediumCode] = useState("all");
+  const [categorySmallCode, setCategorySmallCode] = useState("all");
   const [pageNo, setPageNo] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [maxPages, setMaxPages] = useState(1);
+
+  const selectedSido = regions.find((region) => region.sidoCode === sidoCode);
+  const sigunguOptions = selectedSido?.sigunguList ?? [];
+  const selectedSigungu = sigunguOptions.find(
+    (option) => option.sigunguCode === sigunguCode,
+  );
+  const dongOptions = selectedSigungu?.dongList ?? [];
+  const selectedDong = dongOptions.find((option) => option.dongCode === dongCode);
+  const selectedLargeCategory = categories.find(
+    (category) => category.largeCode === categoryLargeCode,
+  );
+  const mediumCategoryOptions = selectedLargeCategory?.mediumCategories ?? [];
+  const selectedMediumCategory = mediumCategoryOptions.find(
+    (category) => category.mediumCode === categoryMediumCode,
+  );
+  const smallCategoryOptions = selectedMediumCategory?.smallCategories ?? [];
 
   const canRun = Boolean(
     status?.enabled && status.serviceKeyConfigured && status.baseUrlConfigured,
   );
 
   function payload(): StoreOpenApiSyncPayload {
+    const regionFilter = resolveRegionFilter({
+      sidoCode,
+      sigunguCode,
+      dongCode,
+    });
+
     return {
       operation,
-      sidoName: operation === "DONG" ? toOptional(sidoName) : undefined,
-      sigunguName: operation === "DONG" ? toOptional(sigunguName) : undefined,
-      dongName: operation === "DONG" ? toOptional(dongName) : undefined,
-      divId: operation === "DONG" ? divId : undefined,
-      key: operation === "DONG" ? toOptional(key) : undefined,
+      sidoName: operation === "DONG" ? selectedSido?.sidoName : undefined,
+      sigunguName: operation === "DONG" ? selectedSigungu?.sigunguName : undefined,
+      dongName: operation === "DONG" ? selectedDong?.dongName : undefined,
+      divId: operation === "DONG" ? regionFilter.divId : undefined,
+      key: operation === "DONG" ? regionFilter.key : undefined,
       radius: operation === "RADIUS" ? radius : undefined,
       cx: operation === "RADIUS" ? cx : undefined,
       cy: operation === "RADIUS" ? cy : undefined,
       changedDate: operation === "DATE" ? toOptional(changedDate) : undefined,
-      categoryLargeCode: toOptional(categoryLargeCode),
-      categoryMediumCode: toOptional(categoryMediumCode),
-      categorySmallCode: toOptional(categorySmallCode),
+      categoryLargeCode: toOptionalSelect(categoryLargeCode),
+      categoryMediumCode: toOptionalSelect(categoryMediumCode),
+      categorySmallCode: toOptionalSelect(categorySmallCode),
       pageNo,
       pageSize,
       maxPages,
@@ -156,27 +182,44 @@ export function OpenApiSyncCard({
           </Field>
           {operation === "DONG" ? (
             <>
-              <Field label="divId" id="openapi-div-id">
+              <Field label="시도" id="openapi-sido-code">
                 <select
-                  id="openapi-div-id"
-                  value={divId}
-                  onChange={(event) =>
-                    setDivId(event.target.value as NonNullable<StoreOpenApiSyncPayload["divId"]>)
-                  }
+                  id="openapi-sido-code"
+                  value={sidoCode}
+                  onChange={(event) => {
+                    setSidoCode(event.target.value);
+                    setSigunguCode("all");
+                    setDongCode("all");
+                  }}
+                  disabled={isFilterLoading}
                   className={inputClassName}
                 >
-                  <option value="ctprvnCd">ctprvnCd</option>
-                  <option value="signguCd">signguCd</option>
-                  <option value="adongCd">adongCd</option>
+                  <option value="all">전체 시도</option>
+                  {regions.map((region) => (
+                    <option key={region.sidoCode} value={region.sidoCode}>
+                      {region.sidoName}
+                    </option>
+                  ))}
                 </select>
               </Field>
-              <Field label="key" id="openapi-key">
-                <input
-                  id="openapi-key"
-                  value={key}
-                  onChange={(event) => setKey(event.target.value)}
+              <Field label="시군구" id="openapi-sigungu-code">
+                <select
+                  id="openapi-sigungu-code"
+                  value={sigunguCode}
+                  onChange={(event) => {
+                    setSigunguCode(event.target.value);
+                    setDongCode("all");
+                  }}
+                  disabled={sidoCode === "all" || isFilterLoading}
                   className={inputClassName}
-                />
+                >
+                  <option value="all">전체 시군구</option>
+                  {sigunguOptions.map((sigungu) => (
+                    <option key={sigungu.sigunguCode} value={sigungu.sigunguCode}>
+                      {sigungu.sigunguName}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </>
           ) : null}
@@ -229,61 +272,86 @@ export function OpenApiSyncCard({
           </div>
         ) : null}
 
-        <div className="grid gap-3 md:grid-cols-3">
-          <Field label="시도명" id="openapi-sido">
-            <input
-              id="openapi-sido"
-              value={sidoName}
-              onChange={(event) => setSidoName(event.target.value)}
-              className={inputClassName}
-            />
-          </Field>
-          <Field label="시군구명" id="openapi-sigungu">
-            <input
-              id="openapi-sigungu"
-              value={sigunguName}
-              onChange={(event) => setSigunguName(event.target.value)}
-              className={inputClassName}
-            />
-          </Field>
-          <Field label="행정동명" id="openapi-dong">
-            <input
-              id="openapi-dong"
-              value={dongName}
-              onChange={(event) => setDongName(event.target.value)}
-              placeholder="선택"
-              className={inputClassName}
-            />
-          </Field>
-        </div>
+        {operation === "DONG" ? (
+          <div className="grid gap-3 md:grid-cols-3">
+            <Field label="행정동" id="openapi-dong-code">
+              <select
+                id="openapi-dong-code"
+                value={dongCode}
+                onChange={(event) => setDongCode(event.target.value)}
+                disabled={sigunguCode === "all" || isFilterLoading}
+                className={inputClassName}
+              >
+                <option value="all">전체 행정동</option>
+                {dongOptions.map((dong) => (
+                  <option key={dong.dongCode} value={dong.dongCode}>
+                    {dong.dongName}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-600 md:col-span-2">
+              선택한 지역 코드로 divId/key를 자동 구성합니다. 시군구까지 선택하면
+              signguCd, 행정동까지 선택하면 adongCd 기준으로 조회합니다.
+            </div>
+          </div>
+        ) : null}
 
         <div className="grid gap-3 md:grid-cols-3">
-          <Field label="대분류 코드" id="openapi-large">
-            <input
+          <Field label="대분류" id="openapi-large">
+            <select
               id="openapi-large"
               value={categoryLargeCode}
-              onChange={(event) => setCategoryLargeCode(event.target.value)}
-              placeholder="예: Q"
+              onChange={(event) => {
+                setCategoryLargeCode(event.target.value);
+                setCategoryMediumCode("all");
+                setCategorySmallCode("all");
+              }}
+              disabled={isFilterLoading}
               className={inputClassName}
-            />
+            >
+              <option value="all">전체 대분류</option>
+              {categories.map((category) => (
+                <option key={category.largeCode} value={category.largeCode}>
+                  {category.largeName}
+                </option>
+              ))}
+            </select>
           </Field>
-          <Field label="중분류 코드" id="openapi-medium">
-            <input
+          <Field label="중분류" id="openapi-medium">
+            <select
               id="openapi-medium"
               value={categoryMediumCode}
-              onChange={(event) => setCategoryMediumCode(event.target.value)}
-              placeholder="예: Q12"
+              onChange={(event) => {
+                setCategoryMediumCode(event.target.value);
+                setCategorySmallCode("all");
+              }}
+              disabled={categoryLargeCode === "all" || isFilterLoading}
               className={inputClassName}
-            />
+            >
+              <option value="all">전체 중분류</option>
+              {mediumCategoryOptions.map((category) => (
+                <option key={category.mediumCode} value={category.mediumCode}>
+                  {category.mediumName}
+                </option>
+              ))}
+            </select>
           </Field>
-          <Field label="소분류 코드" id="openapi-small">
-            <input
+          <Field label="소분류" id="openapi-small">
+            <select
               id="openapi-small"
               value={categorySmallCode}
               onChange={(event) => setCategorySmallCode(event.target.value)}
-              placeholder="예: Q12A01"
+              disabled={categoryMediumCode === "all" || isFilterLoading}
               className={inputClassName}
-            />
+            >
+              <option value="all">전체 소분류</option>
+              {smallCategoryOptions.map((category) => (
+                <option key={category.smallCode} value={category.smallCode}>
+                  {category.smallName}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
 
@@ -400,4 +468,29 @@ function StatusPill({
 
 function toOptional(value: string) {
   return value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function toOptionalSelect(value: string) {
+  return value !== "all" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function resolveRegionFilter({
+  sidoCode,
+  sigunguCode,
+  dongCode,
+}: {
+  sidoCode: string;
+  sigunguCode: string;
+  dongCode: string;
+}) {
+  if (dongCode !== "all") {
+    return { divId: "adongCd" as const, key: dongCode };
+  }
+  if (sigunguCode !== "all") {
+    return { divId: "signguCd" as const, key: sigunguCode };
+  }
+  if (sidoCode !== "all") {
+    return { divId: "ctprvnCd" as const, key: sidoCode };
+  }
+  return { divId: "signguCd" as const, key: "11680" };
 }

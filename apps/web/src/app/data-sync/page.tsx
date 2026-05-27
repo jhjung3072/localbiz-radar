@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CsvUploadCard } from "@/features/data-sync/components/csv-upload-card";
+import { MasterSyncCard } from "@/features/data-sync/components/master-sync-card";
 import { OpenApiSyncCard } from "@/features/data-sync/components/openapi-sync-card";
 import { SyncGuideCard } from "@/features/data-sync/components/sync-guide-card";
 import { SyncLogTable } from "@/features/data-sync/components/sync-log-table";
@@ -17,10 +18,20 @@ import {
 } from "@/features/data-sync/api/sync-api";
 import { syncQueryKeys } from "@/features/data-sync/api/sync-query-keys";
 import type { StoreSyncResult } from "@/features/data-sync/types";
+import { getRegions, getStoreCategories } from "@/features/stores/api/store-api";
+import { storeQueryKeys } from "@/features/stores/api/store-query-keys";
+import {
+  getMasterSyncStatus,
+  syncCategoryMasters,
+  syncRegionMasters,
+} from "@/features/master/api/master-api";
+import { masterQueryKeys } from "@/features/master/api/master-query-keys";
+import type { MasterSyncResult } from "@/features/master/types";
 
 export default function DataSyncPage() {
   const queryClient = useQueryClient();
   const [result, setResult] = useState<StoreSyncResult | null>(null);
+  const [masterResult, setMasterResult] = useState<MasterSyncResult | null>(null);
   const [page, setPage] = useState(0);
   const size = 10;
 
@@ -32,6 +43,18 @@ export default function DataSyncPage() {
   const openApiStatusQuery = useQuery({
     queryKey: syncQueryKeys.openApiStatus(),
     queryFn: getOpenApiSyncStatus,
+  });
+  const regionsQuery = useQuery({
+    queryKey: storeQueryKeys.regions(),
+    queryFn: getRegions,
+  });
+  const categoriesQuery = useQuery({
+    queryKey: storeQueryKeys.categories(),
+    queryFn: getStoreCategories,
+  });
+  const masterStatusQuery = useQuery({
+    queryKey: masterQueryKeys.status(),
+    queryFn: getMasterSyncStatus,
   });
   const importMutation = useMutation({
     mutationFn: importStoreCsv,
@@ -65,11 +88,35 @@ export default function DataSyncPage() {
       });
     },
   });
+  const regionMasterMutation = useMutation({
+    mutationFn: syncRegionMasters,
+    onSuccess: async (response) => {
+      setMasterResult(response);
+      setPage(0);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: masterQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: syncQueryKeys.all }),
+      ]);
+    },
+  });
+  const categoryMasterMutation = useMutation({
+    mutationFn: syncCategoryMasters,
+    onSuccess: async (response) => {
+      setMasterResult(response);
+      setPage(0);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: masterQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: syncQueryKeys.all }),
+      ]);
+    },
+  });
 
   const openApiError =
     openApiDryRunMutation.error ??
     openApiSyncMutation.error ??
     scheduleMutation.error;
+  const masterSyncError =
+    regionMasterMutation.error ?? categoryMasterMutation.error;
   const isOpenApiRunning =
     openApiDryRunMutation.isPending || openApiSyncMutation.isPending;
 
@@ -106,6 +153,62 @@ export default function DataSyncPage() {
         onSync={(payload) => openApiSyncMutation.mutate(payload)}
         onRefreshStatus={() => openApiStatusQuery.refetch()}
         onToggleSchedule={(enabled) => scheduleMutation.mutate(enabled)}
+        regions={regionsQuery.data ?? []}
+        categories={categoriesQuery.data ?? []}
+        isFilterLoading={regionsQuery.isLoading || categoriesQuery.isLoading}
+      />
+
+      <MasterSyncCard
+        status={masterStatusQuery.data}
+        result={masterResult}
+        isStatusLoading={masterStatusQuery.isLoading}
+        isRegionRunning={regionMasterMutation.isPending}
+        isCategoryRunning={categoryMasterMutation.isPending}
+        onRegionDryRun={() =>
+          regionMasterMutation.mutate({
+            ctprvnCd: "11",
+            includeSigungu: true,
+            includeAdminDong: true,
+            includeLegalDong: false,
+            dryRun: true,
+            maxSigunguCount: 25,
+            maxDongCountPerSigungu: 50,
+          })
+        }
+        onRegionSync={() =>
+          regionMasterMutation.mutate({
+            ctprvnCd: "11",
+            includeSigungu: true,
+            includeAdminDong: true,
+            includeLegalDong: false,
+            dryRun: false,
+            maxSigunguCount: 25,
+            maxDongCountPerSigungu: 50,
+          })
+        }
+        onCategoryDryRun={() =>
+          categoryMasterMutation.mutate({
+            includeLarge: true,
+            includeMedium: true,
+            includeSmall: true,
+            dryRun: true,
+            maxLargeCount: 20,
+            maxMediumCount: 200,
+            maxSmallCountPerMedium: 100,
+          })
+        }
+        onCategorySync={() =>
+          categoryMasterMutation.mutate({
+            includeLarge: true,
+            includeMedium: true,
+            includeSmall: true,
+            dryRun: false,
+            maxLargeCount: 20,
+            maxMediumCount: 200,
+            maxSmallCountPerMedium: 100,
+          })
+        }
+        onRefreshStatus={() => masterStatusQuery.refetch()}
       />
 
       {importMutation.isError ? (
@@ -131,6 +234,20 @@ export default function DataSyncPage() {
           <p className="mt-2 leading-6">
             {openApiError instanceof Error
               ? openApiError.message
+              : "OpenAPI 설정 상태와 API 서버 로그를 확인해 주세요."}
+          </p>
+        </div>
+      ) : null}
+
+      {masterStatusQuery.isError || masterSyncError ? (
+        <div
+          role="alert"
+          className="rounded-[8px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
+        >
+          <p className="font-semibold">마스터 데이터 동기화 요청에 실패했습니다.</p>
+          <p className="mt-2 leading-6">
+            {masterSyncError instanceof Error
+              ? masterSyncError.message
               : "OpenAPI 설정 상태와 API 서버 로그를 확인해 주세요."}
           </p>
         </div>

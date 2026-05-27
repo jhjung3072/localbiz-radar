@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.localbizradar.api.master.service.MasterDataQueryService;
 import com.localbizradar.api.region.dto.DongResponse;
 import com.localbizradar.api.region.dto.RegionResponse;
 import com.localbizradar.api.region.dto.SigunguResponse;
@@ -18,12 +19,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegionService {
 
 	private final RegionRepository regionRepository;
+	private final MasterDataQueryService masterDataQueryService;
 
-	public RegionService(RegionRepository regionRepository) {
+	public RegionService(
+			RegionRepository regionRepository,
+			MasterDataQueryService masterDataQueryService
+	) {
 		this.regionRepository = regionRepository;
+		this.masterDataQueryService = masterDataQueryService;
 	}
 
 	public List<RegionResponse> getRegions() {
+		if (masterDataQueryService.hasRegionMasters()) {
+			return masterDataQueryService.getCompatibleRegions();
+		}
+
 		Map<String, SidoGroup> sidoGroups = new LinkedHashMap<>();
 
 		regionRepository.findRegionRows().forEach(row -> {

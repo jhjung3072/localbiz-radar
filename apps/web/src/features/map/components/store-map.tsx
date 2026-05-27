@@ -38,8 +38,8 @@ const MAP_LIMIT = 500;
 const NEARBY_LIMIT = 100;
 
 export function StoreMap() {
-  const [sido, setSido] = useState("서울특별시");
-  const [sigungu, setSigungu] = useState("강남구");
+  const [sido, setSido] = useState("11");
+  const [sigungu, setSigungu] = useState("11680");
   const [dong, setDong] = useState("all");
   const [categoryLargeCode, setCategoryLargeCode] = useState("all");
   const [categoryMediumCode, setCategoryMediumCode] = useState("all");
@@ -61,12 +61,21 @@ export function StoreMap() {
     queryKey: storeQueryKeys.regions(),
     queryFn: getRegions,
   });
+  const selectedSido = regionsQuery.data?.find(
+    (region) => region.sidoCode === sido,
+  );
+  const selectedSigungu = selectedSido?.sigunguList.find(
+    (option) => option.sigunguCode === sigungu,
+  );
+  const selectedDong = selectedSigungu?.dongList.find(
+    (option) => option.dongCode === dong,
+  );
 
   const mapParams = useMemo<MapStoreSearchParams>(
     () => ({
-      sido: normalizeSelectValue(sido),
-      sigungu: normalizeSelectValue(sigungu),
-      dong: normalizeSelectValue(dong),
+      sido: normalizeSelectValue(selectedSido?.sidoName ?? "all"),
+      sigungu: normalizeSelectValue(selectedSigungu?.sigunguName ?? "all"),
+      dong: normalizeSelectValue(selectedDong?.dongName ?? "all"),
       categoryLargeCode: normalizeSelectValue(categoryLargeCode),
       categoryMediumCode: normalizeSelectValue(categoryMediumCode),
       categorySmallCode: normalizeSelectValue(categorySmallCode),
@@ -80,9 +89,9 @@ export function StoreMap() {
       categoryLargeCode,
       categoryMediumCode,
       categorySmallCode,
-      dong,
-      sigungu,
-      sido,
+      selectedDong,
+      selectedSido,
+      selectedSigungu,
       viewport,
     ],
   );

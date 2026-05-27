@@ -44,12 +44,30 @@ export function StoreTable() {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
+  const categoriesQuery = useQuery({
+    queryKey: storeQueryKeys.categories(),
+    queryFn: getStoreCategories,
+  });
+  const regionsQuery = useQuery({
+    queryKey: storeQueryKeys.regions(),
+    queryFn: getRegions,
+  });
+  const selectedSido = regionsQuery.data?.find(
+    (region) => region.sidoCode === sido,
+  );
+  const sigunguOptions = selectedSido?.sigunguList ?? [];
+  const selectedSigungu = sigunguOptions.find(
+    (sigunguOption) => sigunguOption.sigunguCode === sigungu,
+  );
+  const dongOptions = selectedSigungu?.dongList ?? [];
+  const selectedDong = dongOptions.find((option) => option.dongCode === dong);
+
   const storeParams = useMemo<StoreSearchParams>(
     () => ({
       keyword: keyword.trim(),
-      sido,
-      sigungu,
-      dong,
+      sido: selectedSido?.sidoName ?? "all",
+      sigungu: selectedSigungu?.sigunguName ?? "all",
+      dong: selectedDong?.dongName ?? "all",
       categoryLargeCode,
       categoryMediumCode,
       categorySmallCode,
@@ -60,11 +78,11 @@ export function StoreTable() {
       categoryLargeCode,
       categoryMediumCode,
       categorySmallCode,
-      dong,
       keyword,
       page,
-      sido,
-      sigungu,
+      selectedDong,
+      selectedSido,
+      selectedSigungu,
       size,
     ],
   );
@@ -73,23 +91,6 @@ export function StoreTable() {
     queryKey: storeQueryKeys.list(storeParams),
     queryFn: () => getStores(storeParams),
   });
-  const categoriesQuery = useQuery({
-    queryKey: storeQueryKeys.categories(),
-    queryFn: getStoreCategories,
-  });
-  const regionsQuery = useQuery({
-    queryKey: storeQueryKeys.regions(),
-    queryFn: getRegions,
-  });
-
-  const selectedSido = regionsQuery.data?.find(
-    (region) => region.sidoName === sido,
-  );
-  const sigunguOptions = selectedSido?.sigunguList ?? [];
-  const selectedSigungu = sigunguOptions.find(
-    (sigunguOption) => sigunguOption.sigunguName === sigungu,
-  );
-  const dongOptions = selectedSigungu?.dongList ?? [];
 
   const selectedLargeCategory = categoriesQuery.data?.find(
     (category) => category.largeCode === categoryLargeCode,
@@ -168,7 +169,7 @@ export function StoreTable() {
             >
               <option value="all">전체 시도</option>
               {regionsQuery.data?.map((option) => (
-                <option key={option.sidoCode} value={option.sidoName}>
+                <option key={option.sidoCode} value={option.sidoCode}>
                   {option.sidoName}
                 </option>
               ))}
@@ -195,7 +196,7 @@ export function StoreTable() {
             >
               <option value="all">전체 시군구</option>
               {sigunguOptions.map((option) => (
-                <option key={option.sigunguCode} value={option.sigunguName}>
+                <option key={option.sigunguCode} value={option.sigunguCode}>
                   {option.sigunguName}
                 </option>
               ))}
@@ -221,7 +222,7 @@ export function StoreTable() {
             >
               <option value="all">전체 동</option>
               {dongOptions.map((option) => (
-                <option key={option.dongCode} value={option.dongName}>
+                <option key={option.dongCode} value={option.dongCode}>
                   {option.dongName}
                 </option>
               ))}

@@ -28,9 +28,13 @@ Next.js 화면
 - `GET /api/analysis/summary`, `GET /api/analysis/category-distribution`, `GET /api/analysis/competition`, `POST /api/analysis/compare`를 제공합니다.
 - `POST /api/admin/sync/stores/csv`, `GET /api/admin/sync/logs`, `GET /api/admin/sync/logs/{id}`를 제공합니다.
 - `POST /api/admin/sync/stores/openapi`, `POST /api/admin/sync/stores/openapi/dry-run`, `GET /api/admin/sync/openapi/status`, `PATCH /api/admin/sync/openapi/schedule`을 제공합니다.
+- `POST /api/admin/sync/master/regions/openapi`, `POST /api/admin/sync/master/categories/openapi`, `GET /api/admin/sync/master/status`를 제공합니다.
+- `GET /api/master/regions`, `GET /api/master/categories`를 제공합니다.
 - 현재 Store/Region 데이터는 Flyway migration으로 주입한 개발용 seed data입니다.
 - 데이터 추가는 CSV 파일 기반 import와 backend OpenAPI client 기반 제한 동기화를 모두 지원합니다.
 - OpenAPI 동기화 데이터는 `stores` table과 `sync_logs` table을 CSV import와 함께 사용합니다.
+- 행정구역/업종 코드 마스터는 `region_masters`, `category_masters` table에 저장하고 `sync_logs`에 `REGION_MASTER_OPENAPI_SYNC`, `CATEGORY_MASTER_OPENAPI_SYNC` 이력을 남깁니다.
+- 기존 `GET /api/regions`, `GET /api/stores/categories`는 마스터 데이터가 있으면 마스터 테이블을 재사용하고, 없으면 기존 seed/store 기반 조회로 fallback합니다.
 - Analysis API는 현재 내부 `stores` table 기반으로 점포 수, 업종 분포, 경쟁 지수, 다양성 점수, LocalBiz 점수를 계산합니다.
 - 현재 분석 지표는 실제 유동인구, 추정매출, 상권 영역 데이터가 반영되지 않은 임시 지표입니다.
 - 지도 API는 현재 `stores` table의 위도/경도 필드를 사용하며, 반경 검색은 PostGIS 없이 bounding box 후보 조회와 Haversine 근사 계산으로 처리합니다.

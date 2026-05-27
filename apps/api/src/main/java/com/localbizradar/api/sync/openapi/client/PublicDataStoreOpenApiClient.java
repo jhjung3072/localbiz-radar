@@ -41,6 +41,7 @@ public class PublicDataStoreOpenApiClient implements StoreOpenApiClient {
 	public StoreOpenApiPage fetchStores(StoreOpenApiRequest request) {
 		URI uri = buildUri(request);
 
+		waitForRequestInterval();
 		try {
 			String responseBody = storeOpenApiRestClient
 					.get()
@@ -72,6 +73,9 @@ public class PublicDataStoreOpenApiClient implements StoreOpenApiClient {
 					body.totalCount() == null ? items.size() : body.totalCount(),
 					items);
 		} catch (RestClientResponseException exception) {
+			if (exception.getStatusCode().value() == 429) {
+				throw new BadRequestException("공공데이터 OpenAPI 호출 제한을 초과했습니다. 잠시 후 다시 시도하거나 동기화 범위를 줄여주세요.");
+			}
 			throw new BadRequestException("공공데이터 OpenAPI 호출에 실패했습니다. status="
 					+ exception.getStatusCode().value()
 					+ ", response="
@@ -85,7 +89,7 @@ public class PublicDataStoreOpenApiClient implements StoreOpenApiClient {
 		UriComponentsBuilder builder = UriComponentsBuilder
 				.fromUriString(resolveOperationUrl(request.operationPath()))
 				.queryParam("serviceKey", properties.serviceKey())
-				.queryParam("type", "xml")
+				.queryParam("type", properties.defaultType())
 				.queryParam("pageNo", request.pageNo())
 				.queryParam("numOfRows", request.pageSize());
 
@@ -128,6 +132,18 @@ public class PublicDataStoreOpenApiClient implements StoreOpenApiClient {
 		} catch (JsonProcessingException exception) {
 			throw new BadRequestException("공공데이터 OpenAPI XML 응답을 파싱하지 못했습니다. reason="
 					+ truncate(exception.getOriginalMessage()));
+		}
+	}
+
+	private void waitForRequestInterval() {
+		if (properties.requestIntervalMillis() <= 0) {
+			return;
+		}
+		try {
+			Thread.sleep(properties.requestIntervalMillis());
+		} catch (InterruptedException exception) {
+			Thread.currentThread().interrupt();
+			throw new BadRequestException("공공데이터 OpenAPI 호출 대기 중 작업이 중단되었습니다.");
 		}
 	}
 

@@ -25,11 +25,11 @@ const selectClassName =
   "h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20 disabled:bg-slate-50 disabled:text-slate-400";
 
 export default function AnalysisPage() {
-  const [baseSido, setBaseSido] = useState("서울특별시");
-  const [baseSigungu, setBaseSigungu] = useState("마포구");
+  const [baseSido, setBaseSido] = useState("11");
+  const [baseSigungu, setBaseSigungu] = useState("11440");
   const [baseDong, setBaseDong] = useState("all");
-  const [targetSido, setTargetSido] = useState("서울특별시");
-  const [targetSigungu, setTargetSigungu] = useState("성동구");
+  const [targetSido, setTargetSido] = useState("11");
+  const [targetSigungu, setTargetSigungu] = useState("11200");
   const [targetDong, setTargetDong] = useState("all");
   const [categoryLargeCode, setCategoryLargeCode] = useState("all");
   const [categoryMediumCode, setCategoryMediumCode] = useState("all");
@@ -44,53 +44,76 @@ export default function AnalysisPage() {
     queryFn: getStoreCategories,
   });
 
+  const selectedBaseSido = regionsQuery.data?.find(
+    (region) => region.sidoCode === baseSido,
+  );
+  const selectedTargetSido = regionsQuery.data?.find(
+    (region) => region.sidoCode === targetSido,
+  );
+  const baseSigunguOptions = selectedBaseSido?.sigunguList ?? [];
+  const targetSigunguOptions = selectedTargetSido?.sigunguList ?? [];
+  const selectedBaseSigungu = baseSigunguOptions.find(
+    (region) => region.sigunguCode === baseSigungu,
+  );
+  const selectedTargetSigungu = targetSigunguOptions.find(
+    (region) => region.sigunguCode === targetSigungu,
+  );
+  const baseDongOptions = selectedBaseSigungu?.dongList ?? [];
+  const targetDongOptions = selectedTargetSigungu?.dongList ?? [];
+  const selectedBaseDong = baseDongOptions.find(
+    (region) => region.dongCode === baseDong,
+  );
+  const selectedTargetDong = targetDongOptions.find(
+    (region) => region.dongCode === targetDong,
+  );
+
   const analysisParams = useMemo<AnalysisFilterParams>(
     () => ({
-      sido: normalizeSelectValue(baseSido),
-      sigungu: normalizeSelectValue(baseSigungu),
-      dong: normalizeSelectValue(baseDong),
+      sido: normalizeSelectValue(selectedBaseSido?.sidoName ?? "all"),
+      sigungu: normalizeSelectValue(selectedBaseSigungu?.sigunguName ?? "all"),
+      dong: normalizeSelectValue(selectedBaseDong?.dongName ?? "all"),
       categoryLargeCode: normalizeSelectValue(categoryLargeCode),
       categoryMediumCode: normalizeSelectValue(categoryMediumCode),
       categorySmallCode: normalizeSelectValue(categorySmallCode),
     }),
     [
-      baseDong,
-      baseSido,
-      baseSigungu,
       categoryLargeCode,
       categoryMediumCode,
       categorySmallCode,
+      selectedBaseDong,
+      selectedBaseSido,
+      selectedBaseSigungu,
     ],
   );
   const comparePayload = useMemo<CompareAnalysisPayload>(
     () => ({
       base: {
-        sido: baseSido === "all" ? "" : baseSido,
-        sigungu: baseSigungu === "all" ? "" : baseSigungu,
-        dong: normalizeSelectValue(baseDong),
+        sido: selectedBaseSido?.sidoName ?? "",
+        sigungu: selectedBaseSigungu?.sigunguName ?? "",
+        dong: normalizeSelectValue(selectedBaseDong?.dongName ?? "all"),
         categoryLargeCode: normalizeSelectValue(categoryLargeCode),
         categoryMediumCode: normalizeSelectValue(categoryMediumCode),
         categorySmallCode: normalizeSelectValue(categorySmallCode),
       },
       target: {
-        sido: targetSido === "all" ? "" : targetSido,
-        sigungu: targetSigungu === "all" ? "" : targetSigungu,
-        dong: normalizeSelectValue(targetDong),
+        sido: selectedTargetSido?.sidoName ?? "",
+        sigungu: selectedTargetSigungu?.sigunguName ?? "",
+        dong: normalizeSelectValue(selectedTargetDong?.dongName ?? "all"),
         categoryLargeCode: normalizeSelectValue(categoryLargeCode),
         categoryMediumCode: normalizeSelectValue(categoryMediumCode),
         categorySmallCode: normalizeSelectValue(categorySmallCode),
       },
     }),
     [
-      baseDong,
-      baseSido,
-      baseSigungu,
       categoryLargeCode,
       categoryMediumCode,
       categorySmallCode,
-      targetDong,
-      targetSido,
-      targetSigungu,
+      selectedBaseDong,
+      selectedBaseSido,
+      selectedBaseSigungu,
+      selectedTargetDong,
+      selectedTargetSido,
+      selectedTargetSigungu,
     ],
   );
 
@@ -142,20 +165,6 @@ export default function AnalysisPage() {
       })),
     [distributionQuery.data],
   );
-  const selectedBaseSido = regionsQuery.data?.find(
-    (region) => region.sidoName === baseSido,
-  );
-  const selectedTargetSido = regionsQuery.data?.find(
-    (region) => region.sidoName === targetSido,
-  );
-  const baseSigunguOptions = selectedBaseSido?.sigunguList ?? [];
-  const targetSigunguOptions = selectedTargetSido?.sigunguList ?? [];
-  const baseDongOptions =
-    baseSigunguOptions.find((region) => region.sigunguName === baseSigungu)
-      ?.dongList ?? [];
-  const targetDongOptions =
-    targetSigunguOptions.find((region) => region.sigunguName === targetSigungu)
-      ?.dongList ?? [];
   const selectedLargeCategory = categoriesQuery.data?.find(
     (category) => category.largeCode === categoryLargeCode,
   );
@@ -408,7 +417,7 @@ function RegionFilter({
           >
             <option value="all">전체 시도</option>
             {sidoOptions.map((option) => (
-              <option key={option.sidoCode} value={option.sidoName}>
+              <option key={option.sidoCode} value={option.sidoCode}>
                 {option.sidoName}
               </option>
             ))}
@@ -425,7 +434,7 @@ function RegionFilter({
           >
             <option value="all">전체 시군구</option>
             {sigunguOptions.map((option) => (
-              <option key={option.sigunguCode} value={option.sigunguName}>
+              <option key={option.sigunguCode} value={option.sigunguCode}>
                 {option.sigunguName}
               </option>
             ))}
@@ -442,7 +451,7 @@ function RegionFilter({
           >
             <option value="all">전체 동</option>
             {dongOptions.map((option) => (
-              <option key={option.dongCode} value={option.dongName}>
+              <option key={option.dongCode} value={option.dongCode}>
                 {option.dongName}
               </option>
             ))}

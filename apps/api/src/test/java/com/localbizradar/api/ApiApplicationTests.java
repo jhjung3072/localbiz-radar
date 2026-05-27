@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import com.localbizradar.api.master.repository.CategoryMasterRepository;
+import com.localbizradar.api.master.repository.RegionMasterRepository;
 import com.localbizradar.api.region.repository.RegionRepository;
 import com.localbizradar.api.store.repository.StoreRepository;
 import com.localbizradar.api.sync.repository.SyncLogRepository;
@@ -25,6 +27,12 @@ class ApiApplicationTests {
 
 	@MockitoBean
 	private SyncLogRepository syncLogRepository;
+
+	@MockitoBean
+	private RegionMasterRepository regionMasterRepository;
+
+	@MockitoBean
+	private CategoryMasterRepository categoryMasterRepository;
 
 	@Test
 	void contextLoads() {

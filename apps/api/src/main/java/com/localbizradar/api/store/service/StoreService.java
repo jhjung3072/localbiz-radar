@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.localbizradar.api.common.error.ResourceNotFoundException;
 import com.localbizradar.api.common.response.PageResponse;
+import com.localbizradar.api.master.service.MasterDataQueryService;
 import com.localbizradar.api.store.domain.Store;
 import com.localbizradar.api.store.dto.CategoryResponse;
 import com.localbizradar.api.store.dto.MediumCategoryResponse;
@@ -26,9 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class StoreService {
 
 	private final StoreRepository storeRepository;
+	private final MasterDataQueryService masterDataQueryService;
 
-	public StoreService(StoreRepository storeRepository) {
+	public StoreService(
+			StoreRepository storeRepository,
+			MasterDataQueryService masterDataQueryService
+	) {
 		this.storeRepository = storeRepository;
+		this.masterDataQueryService = masterDataQueryService;
 	}
 
 	public PageResponse<StoreListItemResponse> getStores(StoreSearchRequest request) {
@@ -47,6 +53,10 @@ public class StoreService {
 	}
 
 	public List<CategoryResponse> getCategories() {
+		if (masterDataQueryService.hasCategoryMasters()) {
+			return masterDataQueryService.getCompatibleCategories();
+		}
+
 		Map<String, CategoryGroup> categoryGroups = new LinkedHashMap<>();
 
 		storeRepository.findCategoryRows().forEach(row -> {
