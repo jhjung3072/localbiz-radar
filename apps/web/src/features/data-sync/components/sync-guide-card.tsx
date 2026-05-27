@@ -15,17 +15,17 @@ export function SyncGuideCard() {
         <GuideItem
           icon={<Database className="size-4" aria-hidden="true" />}
           title="반영 범위"
-          description="externalStoreId와 sourceSystem 기준으로 stores table에 upsert합니다."
+          description="CSV와 OpenAPI 모두 externalStoreId와 sourceSystem 기준으로 stores table에 upsert합니다."
         />
         <GuideItem
           icon={<KeyRound className="size-4" aria-hidden="true" />}
           title="보안 원칙"
-          description="공공 데이터 API key는 frontend에 두지 않습니다."
+          description="공공데이터 service key는 backend application.yml에서만 사용하고 frontend에는 전달하지 않습니다."
         />
       </div>
       <p className="mt-4 text-sm leading-6 text-slate-600">
-        이 기능은 인증 도입 전까지 개발용 도구입니다. 자세한 CSV header와 오류
-        처리 정책은{" "}
+        이 기능은 인증 도입 전까지 개발용 도구입니다. 자세한 CSV header, OpenAPI
+        설정, 오류 처리 정책은{" "}
         <Link href="/api-setup" className="font-semibold text-teal-700 underline-offset-4 hover:underline">
           API 설정
         </Link>

@@ -1,6 +1,7 @@
 package com.localbizradar.api.region.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.localbizradar.api.region.domain.Region;
 import com.localbizradar.api.region.dto.RegionRow;
@@ -23,4 +24,15 @@ public interface RegionRepository extends JpaRepository<Region, Long> {
 			order by r.sidoName, r.sigunguName, r.dongName
 			""")
 	List<RegionRow> findRegionRows();
+
+	Optional<Region> findFirstBySidoNameAndSigunguNameAndDongNameOrderByDongNameAsc(
+			String sidoName,
+			String sigunguName,
+			String dongName);
+
+	Optional<Region> findFirstBySidoNameAndSigunguNameOrderByDongNameAsc(
+			String sidoName,
+			String sigunguName);
+
+	Optional<Region> findFirstBySidoNameOrderBySigunguNameAscDongNameAsc(String sidoName);
 }

@@ -106,7 +106,7 @@ export function SyncLogTable({
         <div>
           <h2 className="text-base font-semibold text-slate-950">동기화 이력</h2>
           <p className="mt-1 text-sm text-slate-500">
-            최근 CSV import 요청과 처리 결과를 확인합니다.
+            최근 CSV import와 OpenAPI 동기화 처리 결과를 확인합니다.
           </p>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={onRetry}>
@@ -221,6 +221,9 @@ function LoadingRows() {
 function syncTypeLabel(syncType: string) {
   if (syncType === "STORE_CSV_IMPORT") {
     return "상가정보 CSV";
+  }
+  if (syncType === "STORE_OPENAPI_SYNC") {
+    return "상가정보 OpenAPI";
   }
   return syncType;
 }

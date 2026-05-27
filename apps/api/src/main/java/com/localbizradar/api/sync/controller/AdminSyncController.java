@@ -4,10 +4,15 @@ import jakarta.validation.Valid;
 
 import com.localbizradar.api.common.response.PageResponse;
 import com.localbizradar.api.sync.dto.StoreCsvImportResponse;
+import com.localbizradar.api.sync.dto.StoreOpenApiScheduleRequest;
+import com.localbizradar.api.sync.dto.StoreOpenApiStatusResponse;
+import com.localbizradar.api.sync.dto.StoreOpenApiSyncRequest;
+import com.localbizradar.api.sync.dto.StoreOpenApiSyncResponse;
 import com.localbizradar.api.sync.dto.SyncLogDetailResponse;
 import com.localbizradar.api.sync.dto.SyncLogListItemResponse;
 import com.localbizradar.api.sync.dto.SyncLogSearchRequest;
 import com.localbizradar.api.sync.service.StoreCsvImportService;
+import com.localbizradar.api.sync.service.StoreOpenApiSyncService;
 import com.localbizradar.api.sync.service.SyncLogService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,8 +24,10 @@ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -34,13 +41,16 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminSyncController {
 
 	private final StoreCsvImportService storeCsvImportService;
+	private final StoreOpenApiSyncService storeOpenApiSyncService;
 	private final SyncLogService syncLogService;
 
 	public AdminSyncController(
 			StoreCsvImportService storeCsvImportService,
+			StoreOpenApiSyncService storeOpenApiSyncService,
 			SyncLogService syncLogService
 	) {
 		this.storeCsvImportService = storeCsvImportService;
+		this.storeOpenApiSyncService = storeOpenApiSyncService;
 		this.syncLogService = syncLogService;
 	}
 
@@ -60,6 +70,43 @@ public class AdminSyncController {
 			@RequestParam(defaultValue = "true") boolean dryRun
 	) {
 		return storeCsvImportService.importStores(file, dryRun);
+	}
+
+	@Operation(
+			summary = "상가정보 OpenAPI 동기화",
+			description = "Spring Boot backend에서 공공데이터 OpenAPI를 호출해 stores table에 upsert합니다.",
+			responses = {
+					@ApiResponse(responseCode = "200", description = "OpenAPI 동기화 처리 완료"),
+					@ApiResponse(responseCode = "400", description = "OpenAPI 설정 또는 요청값 오류")
+			}
+	)
+	@PostMapping("/stores/openapi")
+	public StoreOpenApiSyncResponse syncStoreOpenApi(
+			@Valid @RequestBody StoreOpenApiSyncRequest request
+	) {
+		return storeOpenApiSyncService.syncStores(request);
+	}
+
+	@Operation(summary = "상가정보 OpenAPI dry-run")
+	@PostMapping("/stores/openapi/dry-run")
+	public StoreOpenApiSyncResponse dryRunStoreOpenApi(
+			@Valid @RequestBody StoreOpenApiSyncRequest request
+	) {
+		return storeOpenApiSyncService.syncStores(request.forceDryRun());
+	}
+
+	@Operation(summary = "OpenAPI 설정 상태 조회")
+	@GetMapping("/openapi/status")
+	public StoreOpenApiStatusResponse getOpenApiStatus() {
+		return storeOpenApiSyncService.getStatus();
+	}
+
+	@Operation(summary = "OpenAPI 예약 동기화 상태 변경")
+	@PatchMapping("/openapi/schedule")
+	public StoreOpenApiStatusResponse updateOpenApiSchedule(
+			@Valid @RequestBody StoreOpenApiScheduleRequest request
+	) {
+		return storeOpenApiSyncService.updateSchedule(request);
 	}
 
 	@Operation(summary = "동기화 이력 목록 조회")

@@ -4,11 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.localbizradar.api.common.error.BadRequestException;
-import com.localbizradar.api.store.domain.Store;
-import com.localbizradar.api.store.repository.StoreRepository;
 import com.localbizradar.api.sync.config.StoreSyncProperties;
 import com.localbizradar.api.sync.domain.SyncLog;
 import com.localbizradar.api.sync.domain.SyncStatus;
+import com.localbizradar.api.sync.domain.SyncType;
 import com.localbizradar.api.sync.dto.StoreCsvImportResponse;
 import com.localbizradar.api.sync.dto.StoreCsvRowErrorResponse;
 import com.localbizradar.api.sync.mapper.StoreCsvMapper;
@@ -29,20 +28,20 @@ public class StoreCsvImportService {
 
 	private final StoreCsvParser storeCsvParser;
 	private final StoreCsvMapper storeCsvMapper;
-	private final StoreRepository storeRepository;
+	private final StoreUpsertService storeUpsertService;
 	private final SyncLogRepository syncLogRepository;
 	private final StoreSyncProperties properties;
 
 	public StoreCsvImportService(
 			StoreCsvParser storeCsvParser,
 			StoreCsvMapper storeCsvMapper,
-			StoreRepository storeRepository,
+			StoreUpsertService storeUpsertService,
 			SyncLogRepository syncLogRepository,
 			StoreSyncProperties properties
 	) {
 		this.storeCsvParser = storeCsvParser;
 		this.storeCsvMapper = storeCsvMapper;
-		this.storeRepository = storeRepository;
+		this.storeUpsertService = storeUpsertService;
 		this.syncLogRepository = syncLogRepository;
 		this.properties = properties;
 	}
@@ -53,7 +52,10 @@ public class StoreCsvImportService {
 		LocalDateTime startedAt = LocalDateTime.now();
 		String sourceName = normalizeSourceName(file.getOriginalFilename());
 		SyncLog syncLog = syncLogRepository.save(SyncLog.start(
-				new SyncLog.StoreCsvImportStart(sourceName, dryRun, startedAt)));
+				SyncType.STORE_CSV_IMPORT,
+				sourceName,
+				dryRun,
+				startedAt));
 
 		try {
 			StoreCsvParseResult parseResult = storeCsvParser.parse(
@@ -136,11 +138,7 @@ public class StoreCsvImportService {
 	private int upsertRows(List<StoreCsvRow> rows, LocalDateTime syncedAt) {
 		String sourceSystem = properties.defaultSourceSystem();
 		for (StoreCsvRow row : rows) {
-			Store store = storeRepository
-					.findBySourceSystemAndExternalStoreId(sourceSystem, row.externalStoreId())
-					.orElseGet(() -> storeCsvMapper.toNewStore(row, sourceSystem, syncedAt));
-			storeCsvMapper.updateStore(store, row, syncedAt);
-			storeRepository.save(store);
+			storeUpsertService.upsert(storeCsvMapper.toCommand(row, sourceSystem), syncedAt);
 		}
 		return rows.size();
 	}

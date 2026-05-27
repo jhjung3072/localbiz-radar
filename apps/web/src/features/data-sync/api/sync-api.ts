@@ -1,6 +1,9 @@
 import { ApiError, apiClient, getApiBaseUrl } from "@/lib/api-client";
 import type {
   StoreCsvImportResult,
+  StoreOpenApiStatus,
+  StoreOpenApiSyncPayload,
+  StoreOpenApiSyncResult,
   SyncLogDetail,
   SyncLogPage,
   SyncLogSearchParams,
@@ -45,6 +48,43 @@ export function getSyncLogs(params: SyncLogSearchParams) {
 
 export function getSyncLogDetail(id: number) {
   return apiClient<SyncLogDetail>(`/api/admin/sync/logs/${id}`);
+}
+
+export function getOpenApiSyncStatus() {
+  return apiClient<StoreOpenApiStatus>("/api/admin/sync/openapi/status");
+}
+
+export function syncStoresFromOpenApi(payload: StoreOpenApiSyncPayload) {
+  return apiClient<StoreOpenApiSyncResult>("/api/admin/sync/stores/openapi", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function dryRunStoresFromOpenApi(payload: StoreOpenApiSyncPayload) {
+  return apiClient<StoreOpenApiSyncResult>(
+    "/api/admin/sync/stores/openapi/dry-run",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function updateOpenApiSchedule(schedulerEnabled: boolean) {
+  return apiClient<StoreOpenApiStatus>("/api/admin/sync/openapi/schedule", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ schedulerEnabled }),
+  });
 }
 
 function toSearchParams(

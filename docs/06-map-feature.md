@@ -17,7 +17,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 NEXT_PUBLIC_KAKAO_MAP_APP_KEY=your-kakao-javascript-key
 ```
 
-실제 key 값은 커밋하지 않습니다. `PUBLIC_DATA_SERVICE_KEY` 같은 공공 데이터 service key는 `NEXT_PUBLIC_*` 환경 변수로 관리하지 않습니다.
+Kakao Maps key와 공공 데이터 service key는 용도가 다릅니다. 공공 데이터 service key는 `NEXT_PUBLIC_*` 환경 변수로 관리하지 않습니다.
 
 ## API 목록
 

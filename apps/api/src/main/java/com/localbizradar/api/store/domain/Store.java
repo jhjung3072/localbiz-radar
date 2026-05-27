@@ -1,6 +1,7 @@
 package com.localbizradar.api.store.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -45,11 +46,29 @@ public class Store {
 	@Column(nullable = false, length = 50)
 	private String sido;
 
+	@Column(name = "sido_code", length = 10)
+	private String sidoCode;
+
 	@Column(nullable = false, length = 50)
 	private String sigungu;
 
+	@Column(name = "sigungu_code", length = 10)
+	private String sigunguCode;
+
 	@Column(nullable = false, length = 50)
 	private String dong;
+
+	@Column(name = "admin_dong_code", length = 20)
+	private String adminDongCode;
+
+	@Column(name = "legal_dong_code", length = 20)
+	private String legalDongCode;
+
+	@Column(name = "legal_dong_name", length = 50)
+	private String legalDongName;
+
+	@Column(name = "pnu_code", length = 30)
+	private String pnuCode;
 
 	@Column(name = "lot_address")
 	private String lotAddress;
@@ -57,11 +76,20 @@ public class Store {
 	@Column(name = "road_address")
 	private String roadAddress;
 
+	@Column(name = "building_management_number", length = 40)
+	private String buildingManagementNumber;
+
 	@Column(precision = 10, scale = 7)
 	private BigDecimal latitude;
 
 	@Column(precision = 10, scale = 7)
 	private BigDecimal longitude;
+
+	@Column(name = "change_type", length = 20)
+	private String changeType;
+
+	@Column(name = "changed_at")
+	private LocalDate changedAt;
 
 	@Column(name = "external_store_id", length = 80)
 	private String externalStoreId;
@@ -93,12 +121,21 @@ public class Store {
 			String categorySmallCode,
 			String categorySmallName,
 			String sido,
+			String sidoCode,
 			String sigungu,
+			String sigunguCode,
 			String dong,
+			String adminDongCode,
+			String legalDongCode,
+			String legalDongName,
+			String pnuCode,
 			String lotAddress,
 			String roadAddress,
+			String buildingManagementNumber,
 			BigDecimal latitude,
 			BigDecimal longitude,
+			String changeType,
+			LocalDate changedAt,
 			LocalDateTime syncedAt
 	) {
 		Store store = new Store();
@@ -115,12 +152,21 @@ public class Store {
 				categorySmallCode,
 				categorySmallName,
 				sido,
+				sidoCode,
 				sigungu,
+				sigunguCode,
 				dong,
+				adminDongCode,
+				legalDongCode,
+				legalDongName,
+				pnuCode,
 				lotAddress,
 				roadAddress,
+				buildingManagementNumber,
 				latitude,
 				longitude,
+				changeType,
+				changedAt,
 				syncedAt);
 		return store;
 	}
@@ -135,12 +181,21 @@ public class Store {
 			String categorySmallCode,
 			String categorySmallName,
 			String sido,
+			String sidoCode,
 			String sigungu,
+			String sigunguCode,
 			String dong,
+			String adminDongCode,
+			String legalDongCode,
+			String legalDongName,
+			String pnuCode,
 			String lotAddress,
 			String roadAddress,
+			String buildingManagementNumber,
 			BigDecimal latitude,
 			BigDecimal longitude,
+			String changeType,
+			LocalDate changedAt,
 			LocalDateTime syncedAt
 	) {
 		this.storeName = storeName;
@@ -152,12 +207,21 @@ public class Store {
 		this.categorySmallCode = categorySmallCode;
 		this.categorySmallName = categorySmallName;
 		this.sido = sido;
+		this.sidoCode = sidoCode;
 		this.sigungu = sigungu;
+		this.sigunguCode = sigunguCode;
 		this.dong = dong;
+		this.adminDongCode = adminDongCode;
+		this.legalDongCode = legalDongCode;
+		this.legalDongName = legalDongName;
+		this.pnuCode = pnuCode;
 		this.lotAddress = lotAddress;
 		this.roadAddress = roadAddress;
+		this.buildingManagementNumber = buildingManagementNumber;
 		this.latitude = latitude;
 		this.longitude = longitude;
+		this.changeType = changeType;
+		this.changedAt = changedAt;
 		this.lastSyncedAt = syncedAt;
 		this.updatedAt = syncedAt;
 	}

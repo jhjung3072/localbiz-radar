@@ -5,4 +5,5 @@ export const syncQueryKeys = {
   logs: (params: SyncLogSearchParams) =>
     [...syncQueryKeys.all, "logs", params] as const,
   detail: (id: number) => [...syncQueryKeys.all, "logs", id] as const,
+  openApiStatus: () => [...syncQueryKeys.all, "openapi-status"] as const,
 };

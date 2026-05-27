@@ -66,17 +66,19 @@ public class SyncLog {
 	protected SyncLog() {
 	}
 
-	public static SyncLog start(StoreCsvImportStart start) {
-		LocalDateTime now = start.startedAt();
+	public static SyncLog start(SyncType syncType, String sourceName, boolean dryRun, LocalDateTime startedAt) {
+		LocalDateTime now = startedAt;
 		SyncLog syncLog = new SyncLog();
-		syncLog.syncType = SyncType.STORE_CSV_IMPORT;
-		syncLog.sourceName = start.sourceName();
+		syncLog.syncType = syncType;
+		syncLog.sourceName = sourceName;
 		syncLog.status = SyncStatus.RUNNING;
-		syncLog.dryRun = start.dryRun();
+		syncLog.dryRun = dryRun;
 		syncLog.startedAt = now;
 		syncLog.createdAt = now;
 		syncLog.updatedAt = now;
-		syncLog.message = "CSV import가 시작되었습니다.";
+		syncLog.message = syncType == SyncType.STORE_CSV_IMPORT
+				? "CSV import가 시작되었습니다."
+				: "OpenAPI 동기화가 시작되었습니다.";
 		return syncLog;
 	}
 
@@ -161,6 +163,4 @@ public class SyncLog {
 		return updatedAt;
 	}
 
-	public record StoreCsvImportStart(String sourceName, boolean dryRun, LocalDateTime startedAt) {
-	}
 }

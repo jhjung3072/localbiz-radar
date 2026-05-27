@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { StoreCsvImportResult } from "@/features/data-sync/types";
+import type { StoreSyncResult } from "@/features/data-sync/types";
 import { statusLabel, statusToneClassName } from "@/features/data-sync/components/sync-status";
 
 type SyncResultCardProps = {
-  result: StoreCsvImportResult | null;
+  result: StoreSyncResult | null;
 };
 
 const targetLinks = [
@@ -23,8 +23,8 @@ export function SyncResultCard({ result }: SyncResultCardProps) {
       <section className="rounded-[8px] border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-slate-950">동기화 결과</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          CSV 업로드를 실행하면 총 row, 성공 row, 실패 row와 실패 요약이
-          표시됩니다.
+          CSV 업로드 또는 OpenAPI 동기화를 실행하면 성공 row, 실패 row와 실패
+          요약이 표시됩니다.
         </p>
       </section>
     );
@@ -54,7 +54,16 @@ export function SyncResultCard({ result }: SyncResultCardProps) {
       </div>
 
       <dl className="mt-5 grid gap-3 sm:grid-cols-4">
-        <Metric label="총 row" value={result.totalRows} />
+        {"fetchedRows" in result ? (
+          <>
+            <Metric label="조회 row" value={result.fetchedRows} />
+            <Metric label="insert row" value={result.insertedRows} />
+            <Metric label="update row" value={result.updatedRows} />
+            <Metric label="요청 page" value={result.requestedPages} />
+          </>
+        ) : (
+          <Metric label="총 row" value={result.totalRows} />
+        )}
         <Metric label="성공 row" value={result.successRows} />
         <Metric label="실패 row" value={result.failedRows} />
         <Metric label="건너뜀 row" value={result.skippedRows} />
@@ -65,7 +74,8 @@ export function SyncResultCard({ result }: SyncResultCardProps) {
           <h3 className="text-sm font-semibold text-rose-800">실패 row 요약</h3>
           <ul className="mt-2 space-y-1 text-sm leading-6 text-rose-800">
             {result.errors.map((error) => (
-              <li key={`${error.rowNumber}-${error.message}`}>
+              <li key={`${"pageNo" in error ? error.pageNo : 0}-${error.rowNumber}-${error.message}`}>
+                {"pageNo" in error ? `page ${error.pageNo} ` : null}
                 row {error.rowNumber}: {error.message}
               </li>
             ))}

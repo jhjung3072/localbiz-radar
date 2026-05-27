@@ -1,7 +1,7 @@
 import { Database, KeyRound, ServerCog, ShieldAlert } from "lucide-react";
 
 const envNames = [
-  "PUBLIC_DATA_SERVICE_KEY",
+  "localbiz.store-openapi.service-key",
   "SPRING_DATASOURCE_URL",
   "NEXT_PUBLIC_API_BASE_URL",
 ];
@@ -30,8 +30,8 @@ export default function ApiSetupPage() {
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             공공데이터포털 등 제공 기관에서 애플리케이션을 등록하고 서비스 키를
-            발급받습니다. 발급된 키는 로컬 환경 변수 또는 백엔드 배포 환경에만
-            저장합니다.
+            발급받습니다. 이번 프로젝트에서는 사용자 요청에 따라 발급된 키를
+            백엔드 application.yml에만 작성합니다.
           </p>
         </article>
         <article className="rounded-[8px] border border-slate-200 bg-white p-5 shadow-sm">
@@ -67,7 +67,8 @@ export default function ApiSetupPage() {
           </h2>
         </div>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          아래 이름은 예시이며 실제 비밀값은 저장소에 커밋하지 않습니다.
+          아래 이름은 설정 위치 예시입니다. 공공데이터 service key는
+          application.yml의 backend 설정으로만 사용합니다.
           <code className="mx-1 rounded bg-slate-100 px-1.5 py-0.5 text-slate-800">
             NEXT_PUBLIC_
           </code>
@@ -95,7 +96,7 @@ export default function ApiSetupPage() {
         </h2>
         <ol className="mt-4 space-y-3 text-sm leading-6 text-slate-700">
           <li>1. 백엔드에서 공공 API 클라이언트와 응답 DTO를 정의합니다.</li>
-          <li>2. 서비스 키는 Spring Boot 환경 변수로만 주입합니다.</li>
+          <li>2. 서비스 키는 Spring Boot application.yml에서만 읽습니다.</li>
           <li>3. 프론트엔드는 백엔드의 조회 API를 통해 가공된 데이터만 받습니다.</li>
           <li>4. 캐시, 재시도, 오류 메시지는 백엔드 정책에 맞춰 추가합니다.</li>
         </ol>

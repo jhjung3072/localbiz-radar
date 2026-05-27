@@ -70,6 +70,10 @@ Swagger UI:
 데이터 동기화 API:
 
 - `POST http://localhost:8080/api/admin/sync/stores/csv`
+- `POST http://localhost:8080/api/admin/sync/stores/openapi`
+- `POST http://localhost:8080/api/admin/sync/stores/openapi/dry-run`
+- `GET http://localhost:8080/api/admin/sync/openapi/status`
+- `PATCH http://localhost:8080/api/admin/sync/openapi/schedule`
 - `GET http://localhost:8080/api/admin/sync/logs`
 - `GET http://localhost:8080/api/admin/sync/logs/{id}`
 
@@ -93,7 +97,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 NEXT_PUBLIC_KAKAO_MAP_APP_KEY=your-kakao-javascript-key
 ```
 
-실제 key 값은 `.env.local`에만 두고 Git에 커밋하지 않습니다. 공공 데이터 service key는 `NEXT_PUBLIC_*`에 넣지 않으며, 이후 Spring Boot 백엔드 환경 변수로만 관리합니다.
+실제 Kakao Maps key 값은 `.env.local`에만 두고 Git에 커밋하지 않습니다. 공공 데이터 service key는 `NEXT_PUBLIC_*`에 넣지 않으며, 이번 프로젝트에서는 Spring Boot `application.yml`의 `localbiz.store-openapi.service-key`로만 관리합니다.
 
 지도 화면 로컬 실행:
 
@@ -106,8 +110,6 @@ pnpm dev:web
 브라우저에서 `http://localhost:3000/map`으로 접속합니다.
 
 ## CSV 데이터 동기화 실행
-
-이번 단계는 실시간 공공 OpenAPI 호출이 아니라 CSV 파일 import만 지원합니다.
 
 샘플 파일:
 
@@ -130,6 +132,36 @@ pnpm dev:web
 3. 결과의 실패 row를 확인합니다.
 4. 실제 반영이 필요하면 체크를 해제하고 다시 업로드합니다.
 5. `/stores`, `/dashboard`, `/analysis`, `/map`에서 데이터 반영을 확인합니다.
+
+## OpenAPI 데이터 동기화 실행
+
+소상공인시장진흥공단_상가(상권)정보 OpenAPI를 사용하려면 공공데이터포털에서 활용 신청을 먼저 완료합니다. API key는 백엔드 `application.yml`의 `localbiz.store-openapi.service-key`로만 설정하며, 프론트엔드의 `NEXT_PUBLIC_*` 값에 넣지 않습니다.
+
+백엔드 설정 예시:
+
+```bash
+STORE_OPENAPI_BASE_URL=https://apis.data.go.kr/B553077/api/open/sdsc2
+STORE_OPENAPI_ENABLED=true
+STORE_OPENAPI_SCHEDULER_ENABLED=false
+STORE_OPENAPI_DEFAULT_SIDO_NAME=서울특별시
+STORE_OPENAPI_DEFAULT_SIGUNGU_NAME=강남구
+STORE_OPENAPI_DEFAULT_PAGE_SIZE=100
+STORE_OPENAPI_DEFAULT_DIV_ID=signguCd
+STORE_OPENAPI_DEFAULT_REGION_KEY=11680
+STORE_OPENAPI_MAX_PAGES_PER_RUN=1
+```
+
+로컬 실행:
+
+```bash
+docker compose up -d
+pnpm dev:api
+pnpm dev:web
+```
+
+브라우저에서 `http://localhost:3000/data-sync`으로 접속한 뒤 OpenAPI 설정 상태를 확인합니다. 먼저 dry-run을 실행해 호출과 parsing 결과를 확인하고, 실제 반영이 필요할 때만 `실제 반영 실행`을 사용합니다.
+
+예약 동기화는 기본 비활성화입니다. 로컬 개발에서는 `/data-sync`의 예약 동기화 토글 또는 `STORE_OPENAPI_SCHEDULER_ENABLED=true`로 활성화할 수 있지만, API quota를 아끼기 위해 `STORE_OPENAPI_MAX_PAGES_PER_RUN`을 낮게 유지합니다.
 
 ## 테스트와 빌드
 
@@ -159,7 +191,18 @@ pnpm run ci
 예시:
 
 ```bash
-PUBLIC_DATA_SERVICE_KEY=
+STORE_OPENAPI_BASE_URL=https://apis.data.go.kr/B553077/api/open/sdsc2
+STORE_OPENAPI_ENABLED=false
+STORE_OPENAPI_SCHEDULER_ENABLED=false
+STORE_OPENAPI_CRON=0 0 3 * * *
+STORE_OPENAPI_DEFAULT_PAGE_SIZE=100
+STORE_OPENAPI_DEFAULT_DIV_ID=signguCd
+STORE_OPENAPI_DEFAULT_REGION_KEY=11680
+STORE_OPENAPI_MAX_PAGES_PER_RUN=1
+STORE_OPENAPI_REQUEST_TIMEOUT_SECONDS=10
+STORE_OPENAPI_DEFAULT_SIDO_NAME=서울특별시
+STORE_OPENAPI_DEFAULT_SIGUNGU_NAME=강남구
+STORE_OPENAPI_DEFAULT_SOURCE_SYSTEM=SMALL_BUSINESS_OPENAPI
 SPRING_DATASOURCE_URL=
 SPRING_DATASOURCE_USERNAME=
 SPRING_DATASOURCE_PASSWORD=

@@ -7,10 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
-import com.localbizradar.api.store.domain.Store;
-import com.localbizradar.api.store.repository.StoreRepository;
 import com.localbizradar.api.sync.config.StoreSyncProperties;
 import com.localbizradar.api.sync.domain.SyncLog;
 import com.localbizradar.api.sync.domain.SyncStatus;
@@ -31,7 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class StoreCsvImportServiceTest {
 
 	@Mock
-	private StoreRepository storeRepository;
+	private StoreUpsertService storeUpsertService;
 
 	@Mock
 	private SyncLogRepository syncLogRepository;
@@ -47,11 +44,11 @@ class StoreCsvImportServiceTest {
 				"SMALL_BUSINESS_CSV",
 				20);
 		storeCsvImportService = new StoreCsvImportService(
-				new StoreCsvParser(),
-				new StoreCsvMapper(),
-				storeRepository,
-				syncLogRepository,
-				properties);
+					new StoreCsvParser(),
+					new StoreCsvMapper(),
+					storeUpsertService,
+					syncLogRepository,
+					properties);
 		when(syncLogRepository.save(any(SyncLog.class))).thenAnswer(invocation -> {
 			SyncLog syncLog = invocation.getArgument(0);
 			ReflectionTestUtils.setField(syncLog, "id", 1L);
@@ -66,14 +63,11 @@ class StoreCsvImportServiceTest {
 		assertThat(response.status()).isEqualTo(SyncStatus.SUCCESS);
 		assertThat(response.dryRun()).isTrue();
 		assertThat(response.successRows()).isEqualTo(1);
-		verify(storeRepository, never()).save(any(Store.class));
+		verify(storeUpsertService, never()).upsert(any(StoreUpsertCommand.class), any());
 	}
 
 	@Test
 	void importsValidRowsAndRecordsFailedRows() {
-		when(storeRepository.findBySourceSystemAndExternalStoreId("SMALL_BUSINESS_CSV", "LBZ-001"))
-				.thenReturn(Optional.empty());
-		when(storeRepository.save(any(Store.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		String csv = validCsv()
 				+ "LBZ-002,, ,Q,음식,Q12,카페,Q12A01,커피전문점,서울특별시,강남구,역삼동,"
 				+ "서울특별시 강남구 역삼동,서울특별시 강남구 테헤란로 1,127.0328920,37.4991240\n";
@@ -83,7 +77,7 @@ class StoreCsvImportServiceTest {
 		assertThat(response.status()).isEqualTo(SyncStatus.PARTIAL_SUCCESS);
 		assertThat(response.successRows()).isEqualTo(1);
 		assertThat(response.failedRows()).isEqualTo(1);
-		verify(storeRepository).save(any(Store.class));
+		verify(storeUpsertService).upsert(any(StoreUpsertCommand.class), any());
 	}
 
 	private MockMultipartFile csvFile(String content) {
