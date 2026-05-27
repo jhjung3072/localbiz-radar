@@ -1,6 +1,6 @@
 # LocalBiz Radar
 
-LocalBiz Radar는 공공 데이터를 기반으로 지역 상권을 탐색하고 비교하는 로컬 커머스 분석 대시보드입니다. 현재 단계에서는 실제 공공 API를 호출하지 않고, 프론트엔드 화면 구조와 백엔드 기본 헬스 체크, 문서화된 개발 흐름을 먼저 구축합니다.
+LocalBiz Radar는 공공 데이터를 기반으로 지역 상권을 탐색하고 비교하는 로컬 커머스 분석 대시보드입니다. 현재 단계에서는 실제 공공 API를 호출하지 않고, 개발용 seed data를 Spring Boot API로 조회해 점포 목록 화면과 필터 흐름을 검증합니다.
 
 ## 기술 스택
 
@@ -30,22 +30,17 @@ localbiz-radar/
 
 ```bash
 pnpm install
+docker compose up -d
+pnpm dev:api
 pnpm dev:web
 ```
 
-프론트엔드는 기본적으로 `http://localhost:3000`에서 실행됩니다. 백엔드는 다음 명령으로 실행합니다. 현재 phase의 백엔드는 헬스 체크만 제공하므로 로컬 DB 없이도 실행됩니다.
+프론트엔드는 기본적으로 `http://localhost:3000`에서 실행됩니다. 백엔드는 `http://localhost:8080`에서 실행되며 PostgreSQL이 필요합니다. `docker-compose.yml`의 기본 PostgreSQL 설정은 애플리케이션 기본 환경 변수와 맞춰져 있습니다.
 
-```bash
-pnpm dev:api
-```
+헬스 체크와 Swagger UI는 다음 경로에서 확인합니다.
 
-헬스 체크는 `GET http://localhost:8080/api/health`에서 확인할 수 있습니다.
-
-PostgreSQL과 Redis는 이후 데이터 저장 및 캐시 전략 검증이 필요할 때 다음 명령으로 실행합니다.
-
-```bash
-docker compose up -d
-```
+- `GET http://localhost:8080/api/health`
+- `http://localhost:8080/swagger-ui/index.html`
 
 ## 환경 변수 정책
 
@@ -53,6 +48,7 @@ docker compose up -d
 - `.env`, `.env.local`, 운영 환경 변수는 각 실행 환경에서 별도로 관리합니다.
 - `NEXT_PUBLIC_` 접두사가 붙은 값은 브라우저에 노출될 수 있으므로 공개 가능한 값에만 사용합니다.
 - 예시 이름: `PUBLIC_DATA_SERVICE_KEY`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, `NEXT_PUBLIC_API_BASE_URL`
+- 예시 값은 `.env.example`에만 둡니다.
 
 ## 공공 API 키 보안 정책
 
@@ -60,11 +56,12 @@ docker compose up -d
 
 ## 현재 단계
 
-- Next.js 앱 셸과 초기 화면 구현
-- 목업 대시보드, 상가 목록, 상권 분석 화면 구현
+- Store/Region 기본 schema와 Flyway seed data 추가
+- Store/Region 조회 API와 Swagger UI 추가
+- `/stores` 화면을 Spring Boot API 기반으로 전환
 - 공공 API 설정 가이드 페이지 작성
 - Spring Boot 헬스 체크 API 추가
-- Vitest smoke test와 GitHub Actions CI 추가
+- Vitest 및 Spring MVC slice test 추가
 
 ## 검증
 

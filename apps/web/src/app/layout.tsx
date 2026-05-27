@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/layout/app-shell";
+import { QueryProvider } from "@/providers/query-provider";
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -30,7 +31,9 @@ export default function RootLayout({
       className={cn("h-full antialiased", geistSans.variable, geistMono.variable)}
     >
       <body className="min-h-full bg-background text-foreground">
-        <AppShell>{children}</AppShell>
+        <QueryProvider>
+          <AppShell>{children}</AppShell>
+        </QueryProvider>
       </body>
     </html>
   );

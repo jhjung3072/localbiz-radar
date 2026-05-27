@@ -9,7 +9,8 @@ LocalBiz Radar의 실제 공공 데이터 연동은 Spring Boot 백엔드를 통
 ```text
 Next.js 화면
   -> Spring Boot 내부 API
-  -> 공공 API 클라이언트
+  -> Store/Region DB 조회
+  -> 이후 phase의 공공 API 클라이언트
   -> 공공 데이터 제공 기관
 ```
 
@@ -19,6 +20,13 @@ Next.js 화면
 - 프론트엔드에서 공공 API 엔드포인트를 직접 호출하지 않습니다.
 - 브라우저에 노출되는 `NEXT_PUBLIC_API_BASE_URL`에는 백엔드 기본 주소처럼 공개 가능한 값만 둡니다.
 - 운영 환경에서는 키 회전과 접근 로그 확인 절차를 별도로 마련합니다.
+
+## 현재 API 데이터
+
+- `GET /api/stores`, `GET /api/stores/{id}`, `GET /api/stores/categories`, `GET /api/regions`를 제공합니다.
+- 현재 Store/Region 데이터는 Flyway migration으로 주입한 개발용 seed data입니다.
+- 실제 공공 상가업소 데이터 동기화는 다음 phase에서 Spring Boot backend client와 배치/캐시 정책을 통해 진행합니다.
+- `/stores` 화면은 공공 API가 아니라 Spring Boot 내부 API만 호출합니다.
 
 ## 백엔드 확장 계획
 
@@ -32,4 +40,4 @@ Next.js 화면
 
 ## 현재 구현 상태
 
-현재 백엔드는 `GET /api/health`만 제공합니다. Store, Region, Analysis 도메인과 실제 공공 API 클라이언트는 아직 만들지 않습니다.
+현재 백엔드는 health, Store, Region 조회 API를 제공합니다. Analysis API와 실제 공공 API 클라이언트는 아직 만들지 않습니다.

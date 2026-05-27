@@ -2,6 +2,10 @@ package com.localbizradar.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import com.localbizradar.api.region.repository.RegionRepository;
+import com.localbizradar.api.store.repository.StoreRepository;
 
 @SpringBootTest(properties = {
 		"spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
@@ -11,6 +15,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 				+ "org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration"
 })
 class ApiApplicationTests {
+
+	@MockitoBean
+	private StoreRepository storeRepository;
+
+	@MockitoBean
+	private RegionRepository regionRepository;
 
 	@Test
 	void contextLoads() {

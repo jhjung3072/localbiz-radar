@@ -23,9 +23,10 @@ pnpm dev:web
 
 ## 백엔드 실행
 
-현재 phase의 백엔드는 `GET /api/health`만 제공하므로 로컬 DB 없이 실행할 수 있습니다.
+현재 phase의 백엔드는 Store/Region 조회 API를 제공하므로 PostgreSQL이 필요합니다. 먼저 로컬 의존성을 실행합니다.
 
 ```bash
+docker compose up -d
 pnpm dev:api
 ```
 
@@ -44,11 +45,15 @@ curl http://localhost:8080/api/health
 }
 ```
 
-PostgreSQL과 Redis가 필요한 다음 phase 작업에서는 다음 명령으로 로컬 의존성을 실행합니다.
+Swagger UI:
 
-```bash
-docker compose up -d
-```
+- `http://localhost:8080/swagger-ui/index.html`
+
+점포 목록 API:
+
+- `GET http://localhost:8080/api/stores`
+- `GET http://localhost:8080/api/stores/categories`
+- `GET http://localhost:8080/api/regions`
 
 ## 테스트와 빌드
 
@@ -71,7 +76,7 @@ pnpm run ci
 - 코드, 파일명, 폴더명, 변수명, 함수명, 클래스명, API 엔드포인트는 영어로 작성합니다.
 - 프론트엔드에는 실제 공공 API 키를 두지 않습니다.
 - 목업 데이터는 관련 feature 폴더에 가깝게 둡니다.
-- 아직 Store, Region, Analysis 도메인 모델은 백엔드에 만들지 않습니다.
+- Store/Region 데이터는 현재 Flyway seed data이며 실제 공공 API 동기화 데이터가 아닙니다.
 
 ## 환경 변수
 
@@ -82,6 +87,7 @@ PUBLIC_DATA_SERVICE_KEY=
 SPRING_DATASOURCE_URL=
 SPRING_DATASOURCE_USERNAME=
 SPRING_DATASOURCE_PASSWORD=
+LOCALBIZ_CORS_ALLOWED_ORIGINS=http://localhost:3000
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 ```
 
