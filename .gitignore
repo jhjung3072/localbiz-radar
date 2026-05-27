@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+dist/
+coverage/
+
+# Java / Gradle
+.gradle/
+build/
+apps/api/build/
+
+# test
+test-results/
+playwright-report/
+
+# env
+.env
+.env.*
+!.env.example
+
+# OS / IDE
+.DS_Store
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+*.log

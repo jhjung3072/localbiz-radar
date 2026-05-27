@@ -1,0 +1,14 @@
+{
+  "name": "localbiz-radar",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "lint:web": "pnpm --filter web lint",
+    "test:web": "pnpm --filter web test:run",
+    "dev:api": "cd apps/api && ./gradlew bootRun",
+    "test:api": "cd apps/api && ./gradlew test",
+    "ci": "pnpm lint:web && pnpm build:web && pnpm test:web && cd apps/api && ./gradlew test"
+  }
+}

@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: localbiz-radar-postgres
+    environment:
+      POSTGRES_DB: localbiz
+      POSTGRES_USER: localbiz
+      POSTGRES_PASSWORD: localbiz
+    ports:
+      - "5432:5432"
+    volumes:
+      - localbiz_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: localbiz-radar-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  localbiz_postgres_data:
