@@ -24,12 +24,21 @@ Next.js 화면
 ## 현재 API 데이터
 
 - `GET /api/stores`, `GET /api/stores/{id}`, `GET /api/stores/categories`, `GET /api/regions`를 제공합니다.
+- `GET /api/stores/map`, `GET /api/stores/nearby`를 제공합니다.
 - `GET /api/analysis/summary`, `GET /api/analysis/category-distribution`, `GET /api/analysis/competition`, `POST /api/analysis/compare`를 제공합니다.
 - 현재 Store/Region 데이터는 Flyway migration으로 주입한 개발용 seed data입니다.
 - Analysis API는 현재 내부 `stores` table 기반으로 점포 수, 업종 분포, 경쟁 지수, 다양성 점수, LocalBiz 점수를 계산합니다.
 - 현재 분석 지표는 실제 유동인구, 추정매출, 상권 영역 데이터가 반영되지 않은 임시 지표입니다.
+- 지도 API는 현재 `stores` table의 위도/경도 필드를 사용하며, 반경 검색은 PostGIS 없이 bounding box 후보 조회와 Haversine 근사 계산으로 처리합니다.
 - 실제 공공 상가업소 데이터 동기화는 다음 phase에서 Spring Boot backend client와 배치/캐시 정책을 통해 진행합니다.
-- `/stores`, `/dashboard`, `/analysis` 화면은 공공 API가 아니라 Spring Boot 내부 API만 호출합니다.
+- `/stores`, `/dashboard`, `/analysis`, `/map` 화면은 공공 API가 아니라 Spring Boot 내부 API만 호출합니다.
+
+## 지도 키 정책
+
+- `NEXT_PUBLIC_KAKAO_MAP_APP_KEY`는 Kakao Maps JavaScript SDK 로딩을 위한 브라우저 client key입니다.
+- Kakao Developers에서 JavaScript SDK 도메인 제한을 설정해야 합니다.
+- 이 키는 공공 데이터 API service key가 아니며, 상가업소 공공 데이터 조회 권한을 갖지 않습니다.
+- `PUBLIC_DATA_SERVICE_KEY` 같은 공공 데이터 service key는 백엔드 환경 변수로만 관리하고 프론트엔드에 노출하지 않습니다.
 
 ## 백엔드 확장 계획
 
@@ -43,4 +52,4 @@ Next.js 화면
 
 ## 현재 구현 상태
 
-현재 백엔드는 health, Store, Region, Analysis 조회 API를 제공합니다. 실제 공공 API 클라이언트는 아직 만들지 않습니다.
+현재 백엔드는 health, Store, Region, Analysis, 지도 조회 API를 제공합니다. 실제 공공 API 클라이언트는 아직 만들지 않습니다.

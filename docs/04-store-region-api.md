@@ -71,6 +71,29 @@ Query parameter:
 
 업종 필터에 사용할 대분류, 중분류, 소분류 계층을 조회합니다.
 
+### GET /api/stores/map
+
+지도 marker 표시에 사용할 점포 목록을 조회합니다. 좌표가 없는 점포는 응답에서 제외합니다.
+
+Query parameter:
+
+- `sido`, `sigungu`, `dong`: 지역 exact match
+- `categoryLargeCode`, `categoryMediumCode`, `categorySmallCode`: 업종 코드 exact match
+- `minLat`, `maxLat`, `minLng`, `maxLng`: 네 값이 모두 있을 때 viewport 필터 적용
+- `limit`: 기본값 `300`, 최대 `1000`
+
+### GET /api/stores/nearby
+
+입력 좌표와 반경 기준 주변 점포를 거리순으로 조회합니다. PostGIS는 아직 사용하지 않고 Haversine 공식을 사용한 개발용 근사 계산으로 처리합니다.
+
+Query parameter:
+
+- `lat`: 필수, `-90` 이상 `90` 이하
+- `lng`: 필수, `-180` 이상 `180` 이하
+- `radius`: meter 단위, 기본값 `500`, `100` 이상 `3000` 이하
+- `categoryLargeCode`, `categoryMediumCode`, `categorySmallCode`: 업종 코드 exact match
+- `limit`: 기본값 `100`, 최대 `500`
+
 ### GET /api/regions
 
 지역 필터에 사용할 시도, 시군구, 행정동 계층을 조회합니다.
@@ -81,6 +104,8 @@ Query parameter:
 curl "http://localhost:8080/api/stores?keyword=커피&sido=서울특별시&page=0&size=10"
 curl "http://localhost:8080/api/stores/categories"
 curl "http://localhost:8080/api/regions"
+curl "http://localhost:8080/api/stores/map?sido=서울특별시&sigungu=강남구"
+curl "http://localhost:8080/api/stores/nearby?lat=37.497952&lng=127.027619&radius=500"
 ```
 
 ## 보안 원칙

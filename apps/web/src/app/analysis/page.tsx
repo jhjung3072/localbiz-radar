@@ -240,7 +240,7 @@ export default function AnalysisPage() {
 
         <div className="rounded-md bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-600">
           현재 점수는 개발용 점포 데이터 기반의 임시 지표입니다. 외부 공공 API
-          또는 지도 SDK는 사용하지 않습니다.
+          또는 지도 기반 공간 분석은 사용하지 않습니다.
         </div>
       </section>
 

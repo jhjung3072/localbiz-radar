@@ -62,6 +62,43 @@ Swagger UI:
 - `GET http://localhost:8080/api/analysis/competition`
 - `POST http://localhost:8080/api/analysis/compare`
 
+지도 API:
+
+- `GET http://localhost:8080/api/stores/map`
+- `GET http://localhost:8080/api/stores/nearby`
+
+## Kakao Maps 설정
+
+`/map` 화면은 Kakao Maps JavaScript SDK를 사용합니다. 이 키는 브라우저 SDK 로딩용 client key이며, 공공 데이터 API service key와 다릅니다.
+
+1. Kakao Developers에서 애플리케이션을 만들고 JavaScript Key를 발급합니다.
+2. 플랫폼 설정에서 Web 플랫폼을 추가합니다.
+3. JavaScript SDK 도메인에 로컬 개발 주소를 등록합니다.
+
+로컬 도메인 예시:
+
+- `http://localhost:3000`
+- `http://127.0.0.1:3000`
+
+`apps/web/.env.local` 예시:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+NEXT_PUBLIC_KAKAO_MAP_APP_KEY=your-kakao-javascript-key
+```
+
+실제 key 값은 `.env.local`에만 두고 Git에 커밋하지 않습니다. 공공 데이터 service key는 `NEXT_PUBLIC_*`에 넣지 않으며, 이후 Spring Boot 백엔드 환경 변수로만 관리합니다.
+
+지도 화면 로컬 실행:
+
+```bash
+docker compose up -d
+pnpm dev:api
+pnpm dev:web
+```
+
+브라우저에서 `http://localhost:3000/map`으로 접속합니다.
+
 ## 테스트와 빌드
 
 ```bash
@@ -96,6 +133,7 @@ SPRING_DATASOURCE_USERNAME=
 SPRING_DATASOURCE_PASSWORD=
 LOCALBIZ_CORS_ALLOWED_ORIGINS=http://localhost:3000
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+NEXT_PUBLIC_KAKAO_MAP_APP_KEY=your-kakao-javascript-key
 ```
 
 실제 비밀값은 Git에 커밋하지 않습니다. `NEXT_PUBLIC_` 값은 브라우저 번들에 포함될 수 있으므로 공개 가능한 설정에만 사용합니다.

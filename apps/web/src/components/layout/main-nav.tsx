@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Database, Home, LineChart, Store } from "lucide-react";
+import { BarChart3, Database, Home, LineChart, MapPinned, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/dashboard", label: "대시보드", icon: BarChart3 },
   { href: "/stores", label: "상가 목록", icon: Store },
   { href: "/analysis", label: "상권 분석", icon: LineChart },
+  { href: "/map", label: "지도", icon: MapPinned },
   { href: "/api-setup", label: "API 설정", icon: Database },
 ];
 
