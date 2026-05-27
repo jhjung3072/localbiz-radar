@@ -1,6 +1,6 @@
 # LocalBiz Radar
 
-LocalBiz Radar는 공공 데이터를 기반으로 지역 상권을 탐색하고 비교하는 로컬 커머스 분석 대시보드입니다. 현재 단계에서는 실제 공공 API를 호출하지 않고, 개발용 seed data를 Spring Boot API로 조회해 점포 목록 화면과 필터 흐름을 검증합니다.
+LocalBiz Radar는 공공 데이터를 기반으로 지역 상권을 탐색하고 비교하는 로컬 커머스 분석 대시보드입니다. 현재 단계에서는 실제 공공 API를 호출하지 않고, 개발용 seed data를 Spring Boot API로 조회해 점포 목록, 대시보드, 상권 분석 흐름을 검증합니다.
 
 ## 기술 스택
 
@@ -42,6 +42,12 @@ pnpm dev:web
 - `GET http://localhost:8080/api/health`
 - `http://localhost:8080/swagger-ui/index.html`
 
+주요 화면:
+
+- `http://localhost:3000/stores`: Store API 기반 점포 목록
+- `http://localhost:3000/dashboard`: Analysis API 기반 대시보드
+- `http://localhost:3000/analysis`: Analysis API 기반 상권 분석
+
 ## 환경 변수 정책
 
 - 실제 비밀값은 저장소에 커밋하지 않습니다.
@@ -59,9 +65,14 @@ pnpm dev:web
 - Store/Region 기본 schema와 Flyway seed data 추가
 - Store/Region 조회 API와 Swagger UI 추가
 - `/stores` 화면을 Spring Boot API 기반으로 전환
+- Analysis API 추가
+- `/dashboard`, `/analysis` 화면을 Analysis API 기반으로 전환
+- 경쟁 지수, 업종 다양성, LocalBiz 점수 계산 방식 문서화
 - 공공 API 설정 가이드 페이지 작성
 - Spring Boot 헬스 체크 API 추가
 - Vitest 및 Spring MVC slice test 추가
+
+현재 분석 지표는 `stores` seed data의 점포 수와 업종 분포만으로 계산한 개발용 임시 지표입니다. 실제 유동인구, 추정매출, 상권 영역 데이터 기반 분석은 이후 공공 데이터 연동 단계에서 추가합니다.
 
 ## 검증
 

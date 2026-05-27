@@ -55,6 +55,13 @@ Swagger UI:
 - `GET http://localhost:8080/api/stores/categories`
 - `GET http://localhost:8080/api/regions`
 
+분석 API:
+
+- `GET http://localhost:8080/api/analysis/summary`
+- `GET http://localhost:8080/api/analysis/category-distribution`
+- `GET http://localhost:8080/api/analysis/competition`
+- `POST http://localhost:8080/api/analysis/compare`
+
 ## 테스트와 빌드
 
 ```bash
@@ -76,7 +83,7 @@ pnpm run ci
 - 코드, 파일명, 폴더명, 변수명, 함수명, 클래스명, API 엔드포인트는 영어로 작성합니다.
 - 프론트엔드에는 실제 공공 API 키를 두지 않습니다.
 - 목업 데이터는 관련 feature 폴더에 가깝게 둡니다.
-- Store/Region 데이터는 현재 Flyway seed data이며 실제 공공 API 동기화 데이터가 아닙니다.
+- Store/Region 데이터와 Analysis 지표는 현재 Flyway seed data 기반이며 실제 공공 API 동기화 데이터가 아닙니다.
 
 ## 환경 변수
 
