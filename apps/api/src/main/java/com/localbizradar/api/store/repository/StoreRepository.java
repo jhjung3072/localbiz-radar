@@ -1,6 +1,7 @@
 package com.localbizradar.api.store.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.localbizradar.api.store.domain.Store;
 import com.localbizradar.api.store.dto.CategoryRow;
@@ -24,4 +25,6 @@ public interface StoreRepository extends JpaRepository<Store, Long>, JpaSpecific
 			order by s.categoryLargeName, s.categoryMediumName, s.categorySmallName
 			""")
 	List<CategoryRow> findCategoryRows();
+
+	Optional<Store> findBySourceSystemAndExternalStoreId(String sourceSystem, String externalStoreId);
 }

@@ -23,6 +23,14 @@ public class GlobalExceptionHandler {
 		return build(HttpStatus.NOT_FOUND, "NOT_FOUND", exception.getMessage(), request);
 	}
 
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<ErrorResponse> handleBadRequestException(
+			BadRequestException exception,
+			HttpServletRequest request
+	) {
+		return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", exception.getMessage(), request);
+	}
+
 	@ExceptionHandler({
 			MethodArgumentNotValidException.class,
 			ConstraintViolationException.class,

@@ -63,6 +63,15 @@ public class Store {
 	@Column(precision = 10, scale = 7)
 	private BigDecimal longitude;
 
+	@Column(name = "external_store_id", length = 80)
+	private String externalStoreId;
+
+	@Column(name = "source_system", length = 50)
+	private String sourceSystem;
+
+	@Column(name = "last_synced_at")
+	private LocalDateTime lastSyncedAt;
+
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
@@ -70,6 +79,87 @@ public class Store {
 	private LocalDateTime updatedAt;
 
 	protected Store() {
+	}
+
+	public static Store createImported(
+			String externalStoreId,
+			String sourceSystem,
+			String storeName,
+			String branchName,
+			String categoryLargeCode,
+			String categoryLargeName,
+			String categoryMediumCode,
+			String categoryMediumName,
+			String categorySmallCode,
+			String categorySmallName,
+			String sido,
+			String sigungu,
+			String dong,
+			String lotAddress,
+			String roadAddress,
+			BigDecimal latitude,
+			BigDecimal longitude,
+			LocalDateTime syncedAt
+	) {
+		Store store = new Store();
+		store.externalStoreId = externalStoreId;
+		store.sourceSystem = sourceSystem;
+		store.createdAt = syncedAt;
+		store.updateImported(
+				storeName,
+				branchName,
+				categoryLargeCode,
+				categoryLargeName,
+				categoryMediumCode,
+				categoryMediumName,
+				categorySmallCode,
+				categorySmallName,
+				sido,
+				sigungu,
+				dong,
+				lotAddress,
+				roadAddress,
+				latitude,
+				longitude,
+				syncedAt);
+		return store;
+	}
+
+	public void updateImported(
+			String storeName,
+			String branchName,
+			String categoryLargeCode,
+			String categoryLargeName,
+			String categoryMediumCode,
+			String categoryMediumName,
+			String categorySmallCode,
+			String categorySmallName,
+			String sido,
+			String sigungu,
+			String dong,
+			String lotAddress,
+			String roadAddress,
+			BigDecimal latitude,
+			BigDecimal longitude,
+			LocalDateTime syncedAt
+	) {
+		this.storeName = storeName;
+		this.branchName = branchName;
+		this.categoryLargeCode = categoryLargeCode;
+		this.categoryLargeName = categoryLargeName;
+		this.categoryMediumCode = categoryMediumCode;
+		this.categoryMediumName = categoryMediumName;
+		this.categorySmallCode = categorySmallCode;
+		this.categorySmallName = categorySmallName;
+		this.sido = sido;
+		this.sigungu = sigungu;
+		this.dong = dong;
+		this.lotAddress = lotAddress;
+		this.roadAddress = roadAddress;
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.lastSyncedAt = syncedAt;
+		this.updatedAt = syncedAt;
 	}
 
 	public Long getId() {
@@ -134,5 +224,17 @@ public class Store {
 
 	public BigDecimal getLongitude() {
 		return longitude;
+	}
+
+	public String getExternalStoreId() {
+		return externalStoreId;
+	}
+
+	public String getSourceSystem() {
+		return sourceSystem;
+	}
+
+	public LocalDateTime getLastSyncedAt() {
+		return lastSyncedAt;
 	}
 }

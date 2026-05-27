@@ -6,6 +6,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.localbizradar.api.region.repository.RegionRepository;
 import com.localbizradar.api.store.repository.StoreRepository;
+import com.localbizradar.api.sync.repository.SyncLogRepository;
 
 @SpringBootTest(properties = {
 		"spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
@@ -21,6 +22,9 @@ class ApiApplicationTests {
 
 	@MockitoBean
 	private RegionRepository regionRepository;
+
+	@MockitoBean
+	private SyncLogRepository syncLogRepository;
 
 	@Test
 	void contextLoads() {
