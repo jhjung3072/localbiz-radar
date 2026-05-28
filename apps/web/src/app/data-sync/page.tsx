@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AdminGuard } from "@/features/auth/components/admin-guard";
 import { CsvUploadCard } from "@/features/data-sync/components/csv-upload-card";
 import { MasterSyncCard } from "@/features/data-sync/components/master-sync-card";
 import { OpenApiSyncCard } from "@/features/data-sync/components/openapi-sync-card";
@@ -29,6 +30,26 @@ import { masterQueryKeys } from "@/features/master/api/master-query-keys";
 import type { MasterSyncResult } from "@/features/master/types";
 
 export default function DataSyncPage() {
+  return (
+    <Suspense fallback={<DataSyncGuardFallback />}>
+      <AdminGuard>
+        <DataSyncContent />
+      </AdminGuard>
+    </Suspense>
+  );
+}
+
+function DataSyncGuardFallback() {
+  return (
+    <div className="space-y-4" aria-live="polite" aria-busy="true">
+      <div className="h-8 w-56 animate-pulse rounded bg-slate-200" />
+      <div className="h-32 animate-pulse rounded-[8px] bg-slate-100" />
+      <div className="h-64 animate-pulse rounded-[8px] bg-slate-100" />
+    </div>
+  );
+}
+
+function DataSyncContent() {
   const queryClient = useQueryClient();
   const [result, setResult] = useState<StoreSyncResult | null>(null);
   const [masterResult, setMasterResult] = useState<MasterSyncResult | null>(null);

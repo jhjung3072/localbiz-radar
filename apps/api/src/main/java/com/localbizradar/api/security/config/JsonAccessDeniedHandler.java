@@ -1,0 +1,36 @@
+package com.localbizradar.api.security.config;
+
+import java.io.IOException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.stereotype.Component;
+
+@Component
+public class JsonAccessDeniedHandler implements AccessDeniedHandler {
+
+	private final SecurityErrorResponseWriter responseWriter;
+
+	public JsonAccessDeniedHandler(SecurityErrorResponseWriter responseWriter) {
+		this.responseWriter = responseWriter;
+	}
+
+	@Override
+	public void handle(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			AccessDeniedException accessDeniedException
+	) throws IOException, ServletException {
+		responseWriter.write(
+				request,
+				response,
+				HttpStatus.FORBIDDEN,
+				"FORBIDDEN",
+				"접근 권한이 없습니다.");
+	}
+}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Radar } from "lucide-react";
 import { MainNav } from "@/components/layout/main-nav";
+import { AuthStatusButton } from "@/features/auth/components/auth-status-button";
 
 export function Header() {
   return (
@@ -18,7 +19,10 @@ export function Header() {
             LocalBiz Radar
           </span>
         </Link>
-        <MainNav />
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+          <MainNav />
+          <AuthStatusButton />
+        </div>
       </div>
     </header>
   );

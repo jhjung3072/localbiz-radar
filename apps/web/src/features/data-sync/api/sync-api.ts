@@ -1,4 +1,4 @@
-import { ApiError, apiClient, getApiBaseUrl } from "@/lib/api-client";
+import { ApiError, apiClient, apiFetch } from "@/lib/api-client";
 import type {
   StoreCsvImportResult,
   StoreOpenApiStatus,
@@ -21,13 +21,10 @@ export async function importStoreCsv({
   const formData = new FormData();
   formData.set("file", file);
 
-  const response = await fetch(
-    `${getApiBaseUrl()}/api/admin/sync/stores/csv?dryRun=${dryRun}`,
+  const response = await apiFetch(
+    `/api/admin/sync/stores/csv?dryRun=${dryRun}`,
     {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
       body: formData,
     },
   );

@@ -7,6 +7,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.localbizradar.api.master.repository.CategoryMasterRepository;
 import com.localbizradar.api.master.repository.RegionMasterRepository;
 import com.localbizradar.api.region.repository.RegionRepository;
+import com.localbizradar.api.security.repository.AdminRefreshTokenRepository;
 import com.localbizradar.api.store.repository.StoreRepository;
 import com.localbizradar.api.sync.repository.SyncLogRepository;
 
@@ -33,6 +34,9 @@ class ApiApplicationTests {
 
 	@MockitoBean
 	private CategoryMasterRepository categoryMasterRepository;
+
+	@MockitoBean
+	private AdminRefreshTokenRepository adminRefreshTokenRepository;
 
 	@Test
 	void contextLoads() {

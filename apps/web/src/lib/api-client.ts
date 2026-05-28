@@ -14,17 +14,17 @@ export function getApiBaseUrl() {
   return process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_API_BASE_URL;
 }
 
+type ApiRequestInit = RequestInit & {
+  skipAuthRefresh?: boolean;
+};
+
+let refreshPromise: Promise<boolean> | null = null;
+
 export async function apiClient<T>(
   path: string,
-  init?: RequestInit,
+  init?: ApiRequestInit,
 ): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      ...init?.headers,
-    },
-  });
+  const response = await apiFetch(path, init);
 
   if (!response.ok) {
     const message = await readErrorMessage(response);
@@ -36,6 +36,71 @@ export async function apiClient<T>(
   }
 
   return response.json() as Promise<T>;
+}
+
+export async function apiFetch(
+  path: string,
+  init?: ApiRequestInit,
+): Promise<Response> {
+  const response = await fetchWithDefaults(path, init);
+
+  if (response.status !== 401 || init?.skipAuthRefresh || !shouldRefresh(path)) {
+    return response;
+  }
+
+  const refreshed = await refreshSession();
+  if (refreshed) {
+    return fetchWithDefaults(path, init);
+  }
+
+  if (typeof window !== "undefined" && path.startsWith("/api/admin/")) {
+    redirectToLogin();
+  }
+
+  return response;
+}
+
+async function fetchWithDefaults(path: string, init?: ApiRequestInit) {
+  const requestInit = { ...(init ?? {}) };
+  delete requestInit.skipAuthRefresh;
+  return fetch(`${getApiBaseUrl()}${path}`, {
+    ...requestInit,
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      ...requestInit.headers,
+    },
+  });
+}
+
+function shouldRefresh(path: string) {
+  return ![
+    "/api/auth/login",
+    "/api/auth/refresh",
+    "/api/auth/logout",
+  ].includes(path);
+}
+
+async function refreshSession() {
+  refreshPromise ??= fetchWithDefaults("/api/auth/refresh", {
+    method: "POST",
+    skipAuthRefresh: true,
+  })
+    .then((response) => response.ok)
+    .catch(() => false)
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
+}
+
+function redirectToLogin() {
+  const next = `${window.location.pathname}${window.location.search}`;
+  const loginUrl = `/admin/login?next=${encodeURIComponent(next)}`;
+  if (!window.location.pathname.startsWith("/admin/login")) {
+    window.location.assign(loginUrl);
+  }
 }
 
 async function readErrorMessage(response: Response) {

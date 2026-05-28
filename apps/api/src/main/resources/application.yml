@@ -19,6 +19,26 @@ spring:
 localbiz:
   cors:
     allowed-origins: "${LOCALBIZ_CORS_ALLOWED_ORIGINS:http://localhost:3000}"
+  security:
+    admin:
+      username: admin
+      password: admin1234
+      display-name: LocalBiz Admin
+    jwt:
+      issuer: localbiz-radar
+      access-token-secret: local-development-access-token-secret-change-me-change-me
+      refresh-token-secret: local-development-refresh-token-secret-change-me-change-me
+      access-token-valid-minutes: 15
+      refresh-token-valid-days: 7
+    cookie:
+      access-token-name: LOCALBIZ_ACCESS_TOKEN
+      refresh-token-name: LOCALBIZ_REFRESH_TOKEN
+      http-only: true
+      secure: false
+      same-site: Lax
+      path: /
+      access-token-max-age-seconds: 900
+      refresh-token-max-age-seconds: 604800
   store-sync:
     max-rows-per-import: "${LOCALBIZ_STORE_SYNC_MAX_ROWS_PER_IMPORT:5000}"
     max-file-size-bytes: "${LOCALBIZ_STORE_SYNC_MAX_FILE_SIZE_BYTES:20971520}"

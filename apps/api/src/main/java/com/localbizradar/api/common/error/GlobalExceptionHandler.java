@@ -3,6 +3,8 @@ package com.localbizradar.api.common.error;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
+import com.localbizradar.api.security.service.AuthException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -29,6 +31,14 @@ public class GlobalExceptionHandler {
 			HttpServletRequest request
 	) {
 		return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", exception.getMessage(), request);
+	}
+
+	@ExceptionHandler(AuthException.class)
+	public ResponseEntity<ErrorResponse> handleAuthException(
+			AuthException exception,
+			HttpServletRequest request
+	) {
+		return build(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", exception.getMessage(), request);
 	}
 
 	@ExceptionHandler({
