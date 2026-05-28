@@ -17,6 +17,7 @@ import com.localbizradar.api.store.repository.StoreRepository;
 import com.localbizradar.api.sync.repository.SyncLogRepository;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 				+ "org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration"
 })
 @AutoConfigureMockMvc
+@AutoConfigureObservability
 @SuppressWarnings({"rawtypes", "unchecked"})
 class SecurityConfigTest {
 
@@ -85,8 +87,36 @@ class SecurityConfigTest {
 	}
 
 	@Test
+	void adminOpsApiRequiresAuthentication() throws Exception {
+		mockMvc.perform(get("/api/admin/ops/overview"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+	}
+
+	@Test
+	void adminOpsApiAllowsValidAccessTokenCookie() throws Exception {
+		given(storeRepository.count()).willReturn(10L);
+		given(storeRepository.countWithCoordinates()).willReturn(9L);
+		given(regionMasterRepository.count()).willReturn(3L);
+		given(categoryMasterRepository.count()).willReturn(4L);
+		TokenResult token = jwtTokenService.createAccessToken(properties.admin().username());
+
+		mockMvc.perform(get("/api/admin/ops/overview")
+						.cookie(new MockCookie(properties.cookie().accessTokenName(), token.token())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.data.totalStores").value(10))
+				.andExpect(jsonPath("$.service.status").value("UP"));
+	}
+
+	@Test
 	void publicApiAllowsAnonymousAccess() throws Exception {
 		mockMvc.perform(get("/api/health"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void actuatorPrometheusAllowsAnonymousAccess() throws Exception {
+		mockMvc.perform(get("/actuator/prometheus"))
 				.andExpect(status().isOk());
 	}
 }

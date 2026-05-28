@@ -362,6 +362,62 @@ function adminResponse(pathname: string) {
       lastCategorySyncStatus: null,
     };
   }
+  if (pathname === "/api/admin/ops/overview") {
+    return {
+      service: {
+        name: "localbiz-radar-api",
+        status: "UP",
+        profile: "local",
+        startedAt: "2026-05-28T09:00:00",
+        uptimeSeconds: 3600,
+      },
+      data: {
+        totalStores: 120,
+        storesWithCoordinates: 118,
+        storesWithoutCoordinates: 2,
+        regionMasterCount: 3,
+        categoryMasterCount: 3,
+      },
+      sync: {
+        lastSyncType: "STORE_OPENAPI_SYNC",
+        lastSyncStatus: "SUCCESS",
+        lastSyncFinishedAt: "2026-05-28T09:30:00",
+        failedSyncCountLast24h: 0,
+      },
+    };
+  }
+  if (pathname === "/api/admin/ops/sync-summary") {
+    return {
+      days: 7,
+      totalRuns: 3,
+      successRuns: 2,
+      partialSuccessRuns: 1,
+      failedRuns: 0,
+      byType: [
+        {
+          syncType: "STORE_OPENAPI_SYNC",
+          totalRuns: 2,
+          successRuns: 1,
+          partialSuccessRuns: 1,
+          failedRuns: 0,
+        },
+      ],
+      recentFailures: [],
+    };
+  }
+  if (pathname === "/api/admin/ops/data-quality") {
+    return {
+      totalStores: 120,
+      missingCoordinateCount: 2,
+      missingRoadAddressCount: 1,
+      missingLotAddressCount: 3,
+      missingCategoryCount: 0,
+      duplicateExternalStoreCount: 0,
+      coordinateCoverageRate: 98.3,
+      addressCoverageRate: 99.2,
+      categoryCoverageRate: 100,
+    };
+  }
   return {};
 }
 

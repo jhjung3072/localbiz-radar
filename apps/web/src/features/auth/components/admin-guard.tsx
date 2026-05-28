@@ -13,7 +13,7 @@ type AdminGuardProps = {
 
 export function AdminGuard({ children }: AdminGuardProps) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const searchParams = useSearchParams();
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);

@@ -44,7 +44,7 @@ public class SecurityConfig {
 						.accessDeniedHandler(accessDeniedHandler))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(HttpMethod.GET, "/api/health").permitAll()
-						.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+						.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
 						.requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/stores/**", "/api/regions/**", "/api/master/**", "/api/analysis/**").permitAll()
@@ -69,7 +69,8 @@ public class SecurityConfig {
 				.filter(origin -> !origin.isBlank())
 				.toList());
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-		configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Accept", "Origin", "X-Requested-With"));
+		configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Accept", "Origin", "X-Requested-With", "X-Request-Id"));
+		configuration.setExposedHeaders(Arrays.asList("X-Request-Id"));
 		configuration.setAllowCredentials(true);
 		configuration.setMaxAge(3600L);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

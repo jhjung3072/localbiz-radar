@@ -16,6 +16,23 @@ spring:
       host: "${SPRING_DATA_REDIS_HOST:localhost}"
       port: "${SPRING_DATA_REDIS_PORT:6379}"
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: localbiz-radar-api
+  info:
+    env:
+      enabled: true
+
 localbiz:
   cors:
     allowed-origins: "${LOCALBIZ_CORS_ALLOWED_ORIGINS:http://localhost:3000}"
