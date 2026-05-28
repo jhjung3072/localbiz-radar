@@ -23,6 +23,10 @@ import com.localbizradar.api.analysis.dto.CompareAreaResponse;
 import com.localbizradar.api.analysis.dto.CompareWinnerResponse;
 import com.localbizradar.api.analysis.dto.CompetitionRequest;
 import com.localbizradar.api.analysis.dto.CompetitionResponse;
+import com.localbizradar.api.analysis.dto.MetricComparisonResponse;
+import com.localbizradar.api.analysis.dto.RegionRankingGroupBy;
+import com.localbizradar.api.analysis.dto.RegionRankingItemResponse;
+import com.localbizradar.api.analysis.dto.RegionRankingRequest;
 import com.localbizradar.api.analysis.repository.AnalysisStoreSpecifications;
 import com.localbizradar.api.store.domain.Store;
 import com.localbizradar.api.store.repository.StoreRepository;
@@ -94,12 +98,57 @@ public class AnalysisService {
 	}
 
 	public CompareAnalysisResponse compare(CompareAnalysisRequest request) {
-		AnalysisSummaryResponse baseSummary = summarize(request.base().toCondition());
-		AnalysisSummaryResponse targetSummary = summarize(request.target().toCondition());
-		CompareAreaResponse base = CompareAreaResponse.from(baseSummary);
-		CompareAreaResponse target = CompareAreaResponse.from(targetSummary);
+		AnalysisCondition categoryCondition = resolveCompareCategoryCondition(request);
+		CompareAreaResponse base = buildCompareArea(request.base(), categoryCondition);
+		CompareAreaResponse target = buildCompareArea(request.target(), categoryCondition);
+		List<MetricComparisonResponse> metricComparisons = buildMetricComparisons(base, target);
 
-		return new CompareAnalysisResponse(base, target, decideWinner(base, target));
+		return new CompareAnalysisResponse(base, target, decideWinner(base, target), metricComparisons);
+	}
+
+	public List<RegionRankingItemResponse> getRegionRanking(RegionRankingRequest request) {
+		List<Store> stores = storeRepository.findAll(Sort.by("sido").ascending()
+				.and(Sort.by("sigungu").ascending())
+				.and(Sort.by("dong").ascending())
+				.and(Sort.by("storeName").ascending()));
+		AnalysisCondition categoryCondition = request.toCategoryCondition();
+
+		Map<RegionRankingKey, List<Store>> groupedStores = stores.stream()
+				.filter(store -> matchesRankingScope(store, request))
+				.collect(Collectors.groupingBy(
+						store -> rankingKey(store, request.getGroupBy()),
+						java.util.LinkedHashMap::new,
+						Collectors.toList()));
+
+		List<RegionRankingMetric> metrics = groupedStores.entrySet().stream()
+				.map(entry -> buildRegionRankingMetric(entry.getKey(), entry.getValue(), categoryCondition))
+				.sorted(Comparator
+						.comparingDouble(RegionRankingMetric::localBizScore)
+						.reversed()
+						.thenComparing(Comparator.comparingLong(RegionRankingMetric::categoryStoreCount).reversed())
+						.thenComparing(Comparator.comparingLong(RegionRankingMetric::totalStores).reversed())
+						.thenComparing(RegionRankingMetric::regionLabel))
+				.limit(request.getLimit())
+				.toList();
+
+		java.util.concurrent.atomic.AtomicInteger rank = new java.util.concurrent.atomic.AtomicInteger(1);
+		return metrics.stream()
+				.map(metric -> new RegionRankingItemResponse(
+						rank.getAndIncrement(),
+						metric.ctprvnCd(),
+						metric.ctprvnNm(),
+						metric.signguCd(),
+						metric.signguNm(),
+						metric.adongCd(),
+						metric.adongNm(),
+						metric.regionLabel(),
+						metric.totalStores(),
+						metric.categoryStoreCount(),
+						metric.competitionIndex(),
+						metric.categoryDiversityScore(),
+						metric.densityScore(),
+						metric.localBizScore()))
+				.toList();
 	}
 
 	private AnalysisSummaryResponse summarize(AnalysisCondition condition) {
@@ -131,12 +180,67 @@ public class AnalysisService {
 						.and(Sort.by("storeName").ascending()));
 	}
 
+	private CompareAreaResponse buildCompareArea(
+			com.localbizradar.api.analysis.dto.CompareAreaRequest area,
+			AnalysisCondition categoryCondition
+	) {
+		AnalysisCondition regionCondition = new AnalysisCondition(
+				area.getCtprvnCd(),
+				hasText(area.getCtprvnNm()) ? area.getCtprvnNm() : area.getSido(),
+				area.getSignguCd(),
+				hasText(area.getSignguNm()) ? area.getSignguNm() : area.getSigungu(),
+				area.getAdongCd(),
+				hasText(area.getAdongNm()) ? area.getAdongNm() : area.getDong(),
+				null,
+				null,
+				null);
+		List<Store> regionStores = findStores(regionCondition);
+		return buildCompareAreaResponse(buildRegionLabel(regionCondition), regionStores, categoryCondition);
+	}
+
+	private CompareAreaResponse buildCompareAreaResponse(
+			String regionLabel,
+			List<Store> regionStores,
+			AnalysisCondition categoryCondition
+	) {
+		List<Store> categoryStores = regionStores.stream()
+				.filter(store -> matchesCategory(store, categoryCondition))
+				.toList();
+		boolean hasCategoryFilter = hasCategoryFilter(categoryCondition);
+		long totalStores = regionStores.size();
+		long categoryStoreCount = hasCategoryFilter ? categoryStores.size() : totalStores;
+		long totalCategories = countDistinct(regionStores, Store::getCategorySmallCode);
+		List<Store> topCategorySource = hasCategoryFilter ? categoryStores : regionStores;
+		CategoryCount topCategory = findTopCategory(topCategorySource);
+		double categoryShare = totalStores == 0 ? 0 : round(categoryStoreCount * 100.0 / totalStores);
+		double competitionIndex = hasCategoryFilter
+				? categoryShare
+				: calculateCompetitionIndex(totalStores, topCategory.count());
+		double diversityScore = calculateDiversityScore(totalStores, totalCategories);
+		double densityScore = calculateDensityScore(totalStores);
+		double localBizScore = calculateLocalBizScore(densityScore, competitionIndex, diversityScore);
+		List<CategoryDistributionItemResponse> topCategories = buildTopCategories(topCategorySource);
+
+		return new CompareAreaResponse(
+				regionLabel,
+				totalStores,
+				categoryStoreCount,
+				categoryShare,
+				totalCategories,
+				topCategory.name(),
+				competitionIndex,
+				diversityScore,
+				densityScore,
+				localBizScore,
+				topCategories);
+	}
+
 	private List<Store> findCompetitionAreaStores(CompetitionRequest request) {
 		if (request.hasRegion()) {
 			return findStores(request.toRegionCondition());
 		}
 
-		List<Store> stores = findStores(new AnalysisCondition(null, null, null, null, null, null));
+		List<Store> stores = findStores(new AnalysisCondition(null, null, null, null, null, null, null, null, null));
 		if (!request.hasCoordinateSearch()) {
 			return stores;
 		}
@@ -184,6 +288,12 @@ public class AnalysisService {
 		return true;
 	}
 
+	private boolean hasCategoryFilter(AnalysisCondition condition) {
+		return StringUtils.hasText(condition.categoryLargeCode())
+				|| StringUtils.hasText(condition.categoryMediumCode())
+				|| StringUtils.hasText(condition.categorySmallCode());
+	}
+
 	private long countDistinct(List<Store> stores, Function<Store, String> mapper) {
 		return stores.stream()
 				.map(mapper)
@@ -204,6 +314,31 @@ public class AnalysisService {
 						.thenComparing(CategoryCount::name))
 				.findFirst()
 				.orElse(new CategoryCount("-", 0));
+	}
+
+	private List<CategoryDistributionItemResponse> buildTopCategories(List<Store> stores) {
+		long totalStores = stores.size();
+		if (totalStores == 0) {
+			return List.of();
+		}
+
+		return stores.stream()
+				.collect(Collectors.groupingBy(
+						store -> new CategoryKey(store.getCategorySmallCode(), store.getCategorySmallName()),
+						Collectors.counting()))
+				.entrySet()
+				.stream()
+				.map(entry -> new CategoryDistributionItemResponse(
+						entry.getKey().code(),
+						entry.getKey().name(),
+						entry.getValue(),
+						round(entry.getValue() * 100.0 / totalStores)))
+				.sorted(Comparator
+						.comparingLong(CategoryDistributionItemResponse::storeCount)
+						.reversed()
+						.thenComparing(CategoryDistributionItemResponse::categoryName))
+				.limit(5)
+				.toList();
 	}
 
 	private double calculateCompetitionIndex(long totalStores, long topCategoryCount) {
@@ -227,8 +362,19 @@ public class AnalysisService {
 			return 0;
 		}
 
-		double volumeScore = Math.min(100, totalStores * 8.0);
-		return round(Math.min(100, volumeScore * 0.35 + diversityScore * 0.35 + (100 - competitionIndex) * 0.30));
+		return calculateLocalBizScore(calculateDensityScore(totalStores), competitionIndex, diversityScore);
+	}
+
+	private double calculateDensityScore(long totalStores) {
+		return round(Math.min(100, totalStores * 8.0));
+	}
+
+	private double calculateLocalBizScore(double densityScore, double competitionIndex, double diversityScore) {
+		if (densityScore == 0 && competitionIndex == 0 && diversityScore == 0) {
+			return 0;
+		}
+
+		return round(Math.min(100, densityScore * 0.35 + diversityScore * 0.35 + (100 - competitionIndex) * 0.30));
 	}
 
 	private CategoryKey categoryKey(Store store, CategoryDepth depth) {
@@ -278,20 +424,161 @@ public class AnalysisService {
 		if (comparison == 0) {
 			return new CompareWinnerResponse(
 					"동률",
+					0,
 					"두 후보 지역의 LocalBiz 점수가 동일합니다.");
 		}
 
 		CompareAreaResponse winner = comparison > 0 ? base : target;
 		CompareAreaResponse other = comparison > 0 ? target : base;
+		double scoreGap = round(Math.abs(winner.localBizScore() - other.localBizScore()));
 		String reason = String.format(
 				Locale.KOREAN,
-				"%s의 LocalBiz 점수가 %.1f점으로 %s보다 %.1f점 높습니다.",
+				"%s의 LocalBiz 점수가 %.1f점으로 %s보다 %.1f점 높습니다. %s",
 				winner.regionLabel(),
 				winner.localBizScore(),
 				other.regionLabel(),
-				Math.abs(winner.localBizScore() - other.localBizScore()));
+				scoreGap,
+				buildWinnerReason(winner, other));
 
-		return new CompareWinnerResponse(winner.regionLabel(), reason);
+		return new CompareWinnerResponse(winner.regionLabel(), scoreGap, reason);
+	}
+
+	private String buildWinnerReason(CompareAreaResponse winner, CompareAreaResponse other) {
+		if (winner.categoryDiversityScore() > other.categoryDiversityScore()
+				&& winner.densityScore() > other.densityScore()) {
+			return "업종 다양성과 점포 밀도 점수가 더 높아 후보 지역으로 더 적합합니다.";
+		}
+		if (winner.categoryDiversityScore() > other.categoryDiversityScore()) {
+			return "업종 다양성 점수가 더 높아 선택 업종 주변의 보완 업종 구성이 더 넓습니다.";
+		}
+		if (winner.densityScore() > other.densityScore()) {
+			return "점포 밀도 점수가 더 높아 상권 활성도가 더 높게 나타납니다.";
+		}
+		if (winner.competitionIndex() < other.competitionIndex()) {
+			return "경쟁 강도가 상대적으로 낮아 진입 부담이 더 작게 나타납니다.";
+		}
+		return "종합 점수 기준으로 더 안정적인 후보 지역입니다.";
+	}
+
+	private List<MetricComparisonResponse> buildMetricComparisons(CompareAreaResponse base, CompareAreaResponse target) {
+		return List.of(
+				metric("localBizScore", "LocalBiz 점수", base.localBizScore(), target.localBizScore()),
+				metric("competitionIndex", "경쟁 강도", base.competitionIndex(), target.competitionIndex()),
+				metric("categoryDiversityScore", "업종 다양성", base.categoryDiversityScore(), target.categoryDiversityScore()),
+				metric("densityScore", "점포 밀도", base.densityScore(), target.densityScore()),
+				metric("categoryShare", "선택 업종 비중", base.categoryShare(), target.categoryShare()),
+				metric("totalStores", "총 점포 수", base.totalStores(), target.totalStores()));
+	}
+
+	private MetricComparisonResponse metric(String key, String name, double baseValue, double targetValue) {
+		String winner = Double.compare(baseValue, targetValue) == 0
+				? "TIE"
+				: Double.compare(baseValue, targetValue) > 0 ? "BASE" : "TARGET";
+		return new MetricComparisonResponse(key, name, baseValue, targetValue, winner);
+	}
+
+	private AnalysisCondition resolveCompareCategoryCondition(CompareAnalysisRequest request) {
+		if (request.category() != null) {
+			return request.category().toCondition();
+		}
+
+		return new AnalysisCondition(
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				request.base().getCategoryLargeCode(),
+				request.base().getCategoryMediumCode(),
+				request.base().getCategorySmallCode());
+	}
+
+	private boolean matchesRankingScope(Store store, RegionRankingRequest request) {
+		if (StringUtils.hasText(request.getCtprvnCd())
+				&& !Objects.equals(normalizedSidoCode(store), request.getCtprvnCd().trim())) {
+			return false;
+		}
+		return !StringUtils.hasText(request.getSignguCd())
+				|| Objects.equals(normalizedSigunguCode(store), request.getSignguCd().trim());
+	}
+
+	private RegionRankingKey rankingKey(Store store, RegionRankingGroupBy groupBy) {
+		if (groupBy == RegionRankingGroupBy.ADMIN_DONG) {
+			return new RegionRankingKey(
+					normalizedSidoCode(store),
+					store.getSido(),
+					normalizedSigunguCode(store),
+					store.getSigungu(),
+					normalizedAdminDongCode(store),
+					store.getDong(),
+					Stream.of(store.getSido(), store.getSigungu(), store.getDong())
+							.filter(StringUtils::hasText)
+							.collect(Collectors.joining(" ")));
+		}
+
+		return new RegionRankingKey(
+				normalizedSidoCode(store),
+				store.getSido(),
+				normalizedSigunguCode(store),
+				store.getSigungu(),
+				null,
+				null,
+				Stream.of(store.getSido(), store.getSigungu())
+						.filter(StringUtils::hasText)
+						.collect(Collectors.joining(" ")));
+	}
+
+	private RegionRankingMetric buildRegionRankingMetric(
+			RegionRankingKey key,
+			List<Store> stores,
+			AnalysisCondition categoryCondition
+	) {
+		CompareAreaResponse area = buildCompareAreaResponse(key.regionLabel(), stores, categoryCondition);
+		return new RegionRankingMetric(
+				key.ctprvnCd(),
+				key.ctprvnNm(),
+				key.signguCd(),
+				key.signguNm(),
+				key.adongCd(),
+				key.adongNm(),
+				key.regionLabel(),
+				area.totalStores(),
+				area.categoryStoreCount(),
+				area.competitionIndex(),
+				area.categoryDiversityScore(),
+				area.densityScore(),
+				area.localBizScore());
+	}
+
+	private String normalizedSidoCode(Store store) {
+		if (StringUtils.hasText(store.getSidoCode())) {
+			return store.getSidoCode();
+		}
+		if ("서울특별시".equals(store.getSido())) {
+			return "11";
+		}
+		return null;
+	}
+
+	private String normalizedSigunguCode(Store store) {
+		if (StringUtils.hasText(store.getSigunguCode())) {
+			return store.getSigunguCode();
+		}
+		return switch (store.getSigungu()) {
+			case "강남구" -> "11680";
+			case "마포구" -> "11440";
+			case "성동구" -> "11200";
+			default -> null;
+		};
+	}
+
+	private String normalizedAdminDongCode(Store store) {
+		return StringUtils.hasText(store.getAdminDongCode()) ? store.getAdminDongCode() : null;
+	}
+
+	private boolean hasText(String value) {
+		return StringUtils.hasText(value);
 	}
 
 	private String buildCompetitionMessage(CompetitionRequest request, long totalStoresInArea, long sameCategoryStoreCount) {
@@ -324,5 +611,33 @@ public class AnalysisService {
 	}
 
 	private record CategoryCount(String name, long count) {
+	}
+
+	private record RegionRankingKey(
+			String ctprvnCd,
+			String ctprvnNm,
+			String signguCd,
+			String signguNm,
+			String adongCd,
+			String adongNm,
+			String regionLabel
+	) {
+	}
+
+	private record RegionRankingMetric(
+			String ctprvnCd,
+			String ctprvnNm,
+			String signguCd,
+			String signguNm,
+			String adongCd,
+			String adongNm,
+			String regionLabel,
+			long totalStores,
+			long categoryStoreCount,
+			double competitionIndex,
+			double categoryDiversityScore,
+			double densityScore,
+			double localBizScore
+	) {
 	}
 }

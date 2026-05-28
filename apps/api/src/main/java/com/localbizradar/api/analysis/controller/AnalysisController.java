@@ -12,6 +12,8 @@ import com.localbizradar.api.analysis.dto.CompareAnalysisRequest;
 import com.localbizradar.api.analysis.dto.CompareAnalysisResponse;
 import com.localbizradar.api.analysis.dto.CompetitionRequest;
 import com.localbizradar.api.analysis.dto.CompetitionResponse;
+import com.localbizradar.api.analysis.dto.RegionRankingItemResponse;
+import com.localbizradar.api.analysis.dto.RegionRankingRequest;
 import com.localbizradar.api.analysis.service.AnalysisService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -103,5 +105,22 @@ public class AnalysisController {
 			@Valid @RequestBody CompareAnalysisRequest request
 	) {
 		return analysisService.compare(request);
+	}
+
+	@Operation(
+			summary = "지역별 후보 랭킹 조회",
+			description = "선택 업종 기준으로 시군구 또는 행정동별 LocalBiz 점수 랭킹을 반환합니다.",
+			responses = {
+					@ApiResponse(responseCode = "200", description = "지역 랭킹 조회 성공"),
+					@ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터")
+			}
+	)
+	@GetMapping("/region-ranking")
+	public List<RegionRankingItemResponse> getRegionRanking(
+			@Valid @ModelAttribute
+			@Parameter(description = "지역 랭킹 필터")
+			RegionRankingRequest request
+	) {
+		return analysisService.getRegionRanking(request);
 	}
 }

@@ -14,6 +14,9 @@ import com.localbizradar.api.analysis.dto.CategoryDistributionRequest;
 import com.localbizradar.api.analysis.dto.CompareAnalysisRequest;
 import com.localbizradar.api.analysis.dto.CompareAnalysisResponse;
 import com.localbizradar.api.analysis.dto.CompareAreaRequest;
+import com.localbizradar.api.analysis.dto.CompareCategoryRequest;
+import com.localbizradar.api.analysis.dto.RegionRankingItemResponse;
+import com.localbizradar.api.analysis.dto.RegionRankingRequest;
 import com.localbizradar.api.store.domain.Store;
 import com.localbizradar.api.store.repository.StoreRepository;
 
@@ -93,6 +96,47 @@ class AnalysisServiceTest {
 		assertThat(response.base().regionLabel()).isEqualTo("서울특별시 성동구");
 		assertThat(response.target().regionLabel()).isEqualTo("서울특별시 마포구");
 		assertThat(response.winner().regionLabel()).isNotBlank();
+		assertThat(response.metricComparisons()).isNotEmpty();
+	}
+
+	@Test
+	void appliesCategoryFilterWhenComparingAreas() {
+		when(storeRepository.findAll(
+				org.mockito.ArgumentMatchers.<Specification<Store>>any(),
+				org.mockito.ArgumentMatchers.any(Sort.class)))
+				.thenReturn(
+						List.of(
+								store("강남 카페", "서울특별시", "강남구", "역삼동", "Q", "음식", "Q12", "카페", "Q12A01", "커피전문점"),
+								store("강남 편의점", "서울특별시", "강남구", "역삼동", "D", "소매", "D03", "종합소매", "D03A01", "편의점")),
+						List.of(
+								store("마포 카페", "서울특별시", "마포구", "망원동", "Q", "음식", "Q12", "카페", "Q12A01", "커피전문점")));
+		CompareCategoryRequest category = new CompareCategoryRequest();
+		category.setIndsLclsCd("Q");
+
+		CompareAnalysisResponse response = analysisService.compare(
+				new CompareAnalysisRequest(area("서울특별시", "강남구"), area("서울특별시", "마포구"), category));
+
+		assertThat(response.base().totalStores()).isEqualTo(2);
+		assertThat(response.base().categoryStoreCount()).isEqualTo(1);
+		assertThat(response.base().categoryShare()).isEqualTo(50.0);
+	}
+
+	@Test
+	void returnsRegionRankingSortedByLocalBizScoreDesc() {
+		when(storeRepository.findAll(org.mockito.ArgumentMatchers.any(Sort.class)))
+				.thenReturn(List.of(
+						store("강남 카페", "서울특별시", "강남구", "역삼동", "Q", "음식", "Q12", "카페", "Q12A01", "커피전문점"),
+						store("마포 카페", "서울특별시", "마포구", "망원동", "Q", "음식", "Q12", "카페", "Q12A01", "커피전문점"),
+						store("마포 편의점", "서울특별시", "마포구", "망원동", "D", "소매", "D03", "종합소매", "D03A01", "편의점"),
+						store("마포 학원", "서울특별시", "마포구", "연남동", "R", "교육", "R02", "예체능학원", "R02A01", "미술학원")));
+		RegionRankingRequest request = new RegionRankingRequest();
+		request.setIndsLclsCd("Q");
+
+		List<RegionRankingItemResponse> response = analysisService.getRegionRanking(request);
+
+		assertThat(response).hasSize(2);
+		assertThat(response.get(0).localBizScore()).isGreaterThanOrEqualTo(response.get(1).localBizScore());
+		assertThat(response.get(0).rank()).isEqualTo(1);
 	}
 
 	@Test

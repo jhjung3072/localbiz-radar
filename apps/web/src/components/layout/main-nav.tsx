@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Database,
+  GitCompare,
   Home,
   LineChart,
   MapPinned,
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/dashboard", label: "대시보드", icon: BarChart3 },
   { href: "/stores", label: "상가 목록", icon: Store },
   { href: "/analysis", label: "상권 분석", icon: LineChart },
+  { href: "/compare", label: "후보 비교", icon: GitCompare },
   { href: "/map", label: "지도", icon: MapPinned },
   { href: "/data-sync", label: "데이터 동기화", icon: RefreshCw },
   { href: "/api-setup", label: "API 설정", icon: Database },

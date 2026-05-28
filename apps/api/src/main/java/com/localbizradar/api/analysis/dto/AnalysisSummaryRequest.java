@@ -72,8 +72,11 @@ public class AnalysisSummaryRequest {
 
 	public AnalysisCondition toCondition() {
 		return new AnalysisCondition(
+				null,
 				sido,
+				null,
 				sigungu,
+				null,
 				dong,
 				categoryLargeCode,
 				categoryMediumCode,

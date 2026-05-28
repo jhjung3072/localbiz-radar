@@ -79,24 +79,78 @@ Request body 예시:
 ```json
 {
   "base": {
-    "sido": "서울특별시",
-    "sigungu": "마포구"
+    "ctprvnCd": "11",
+    "ctprvnNm": "서울특별시",
+    "signguCd": "11680",
+    "signguNm": "강남구",
+    "adongCd": "11680640",
+    "adongNm": "역삼1동"
   },
   "target": {
-    "sido": "서울특별시",
-    "sigungu": "성동구"
+    "ctprvnCd": "11",
+    "ctprvnNm": "서울특별시",
+    "signguCd": "11440",
+    "signguNm": "마포구",
+    "adongCd": "11440660",
+    "adongNm": "서교동"
+  },
+  "category": {
+    "indsLclsCd": "I2",
+    "indsLclsNm": "음식점",
+    "indsMclsCd": "I201",
+    "indsMclsNm": "한식"
   }
 }
+```
+
+기존 `sido`, `sigungu`, `dong`, `categoryLargeCode`, `categoryMediumCode`, `categorySmallCode` 기반 request도 호환합니다. 코드 필드가 있으면 코드 기준을 우선 사용하고, 부족하면 명칭 기준으로 fallback합니다.
+
+### GET /api/analysis/region-ranking
+
+선택 업종 기준 지역별 LocalBiz 점수 랭킹을 조회합니다.
+
+Query parameter:
+
+- `ctprvnCd`: 시도 코드, 기본값 `11`
+- `signguCd`: 시군구 코드
+- `groupBy`: `SIGUNGU` 또는 `ADMIN_DONG`, 기본값 `SIGUNGU`
+- `indsLclsCd`, `indsMclsCd`, `indsSclsCd`: 업종 코드 필터
+- `limit`: 반환 개수, 기본값 `10`, 최대 `50`
+
+응답 예시:
+
+```json
+[
+  {
+    "rank": 1,
+    "ctprvnCd": "11",
+    "ctprvnNm": "서울특별시",
+    "signguCd": "11440",
+    "signguNm": "마포구",
+    "adongCd": null,
+    "adongNm": null,
+    "regionLabel": "서울특별시 마포구",
+    "totalStores": 980,
+    "categoryStoreCount": 170,
+    "competitionIndex": 76.0,
+    "categoryDiversityScore": 78.0,
+    "densityScore": 69.0,
+    "localBizScore": 76.0
+  }
+]
 ```
 
 ## 지표 계산 방식
 
 - `totalStores`: 조건에 맞는 점포 수
+- `categoryStoreCount`: 선택 업종 조건에 해당하는 점포 수
+- `categoryShare`: `categoryStoreCount / totalStores * 100`
 - `totalCategories`: 조건에 맞는 distinct `categorySmallCode` 수
 - `topCategoryName`: 점포 수가 가장 많은 소분류 업종명
-- `competitionIndex`: 전체 점포 중 최다 업종이 차지하는 비율을 0-100으로 환산
+- `competitionIndex`: 선택 업종 또는 최다 업종이 해당 지역에서 차지하는 비율을 0-100으로 환산
 - `categoryDiversityScore`: distinct 소분류 업종 수를 전체 점포 수 대비 0-100으로 환산
-- `localBizScore`: 점포량 점수, 업종 다양성, 낮은 경쟁도를 가중 합산한 임시 점수
+- `densityScore`: 현재는 점포 수 기반으로 정규화한 개발용 밀도 점수
+- `localBizScore`: 경쟁 강도, 업종 다양성, 점포 밀도를 조합한 개발용 상권 점수
 
 데이터가 없으면 점포 수와 점수는 모두 `0` 기반으로 반환합니다.
 

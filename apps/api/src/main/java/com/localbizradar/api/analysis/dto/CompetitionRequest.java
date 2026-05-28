@@ -111,11 +111,14 @@ public class CompetitionRequest {
 	}
 
 	public AnalysisCondition toRegionCondition() {
-		return new AnalysisCondition(sido, sigungu, dong, null, null, null);
+		return new AnalysisCondition(null, sido, null, sigungu, null, dong, null, null, null);
 	}
 
 	public AnalysisCondition toCategoryCondition() {
 		return new AnalysisCondition(
+				null,
+				null,
+				null,
 				null,
 				null,
 				null,

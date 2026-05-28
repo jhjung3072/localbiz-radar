@@ -22,9 +22,27 @@ public final class AnalysisStoreSpecifications {
 		return (root, query, criteriaBuilder) -> {
 			List<Predicate> predicates = new ArrayList<>();
 
-			addEqualPredicate(predicates, criteriaBuilder, root.get("sido"), condition.sido());
-			addEqualPredicate(predicates, criteriaBuilder, root.get("sigungu"), condition.sigungu());
-			addEqualPredicate(predicates, criteriaBuilder, root.get("dong"), condition.dong());
+			addCodeOrNamePredicate(
+					predicates,
+					criteriaBuilder,
+					root.get("sidoCode"),
+					root.get("sido"),
+					condition.sidoCode(),
+					condition.sido());
+			addCodeOrNamePredicate(
+					predicates,
+					criteriaBuilder,
+					root.get("sigunguCode"),
+					root.get("sigungu"),
+					condition.sigunguCode(),
+					condition.sigungu());
+			addCodeOrNamePredicate(
+					predicates,
+					criteriaBuilder,
+					root.get("adminDongCode"),
+					root.get("dong"),
+					condition.adminDongCode(),
+					condition.dong());
 			addEqualPredicate(predicates, criteriaBuilder, root.get("categoryLargeCode"), condition.categoryLargeCode());
 			addEqualPredicate(predicates, criteriaBuilder, root.get("categoryMediumCode"), condition.categoryMediumCode());
 			addEqualPredicate(predicates, criteriaBuilder, root.get("categorySmallCode"), condition.categorySmallCode());
@@ -42,5 +60,23 @@ public final class AnalysisStoreSpecifications {
 		if (StringUtils.hasText(value)) {
 			predicates.add(criteriaBuilder.equal(path, value.trim()));
 		}
+	}
+
+	private static void addCodeOrNamePredicate(
+			List<Predicate> predicates,
+			CriteriaBuilder criteriaBuilder,
+			Path<String> codePath,
+			Path<String> namePath,
+			String code,
+			String name
+	) {
+		if (StringUtils.hasText(code) && StringUtils.hasText(name)) {
+			predicates.add(criteriaBuilder.or(
+					criteriaBuilder.equal(codePath, code.trim()),
+					criteriaBuilder.equal(namePath, name.trim())));
+			return;
+		}
+		addEqualPredicate(predicates, criteriaBuilder, codePath, code);
+		addEqualPredicate(predicates, criteriaBuilder, namePath, name);
 	}
 }

@@ -48,6 +48,6 @@ public class CategoryDistributionRequest {
 	}
 
 	public AnalysisCondition toCondition() {
-		return new AnalysisCondition(sido, sigungu, dong, null, null, null);
+		return new AnalysisCondition(null, sido, null, sigungu, null, dong, null, null, null);
 	}
 }

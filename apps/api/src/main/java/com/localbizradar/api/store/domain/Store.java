@@ -266,12 +266,32 @@ public class Store {
 		return sido;
 	}
 
+	public String getSidoCode() {
+		return sidoCode;
+	}
+
 	public String getSigungu() {
 		return sigungu;
 	}
 
+	public String getSigunguCode() {
+		return sigunguCode;
+	}
+
 	public String getDong() {
 		return dong;
+	}
+
+	public String getAdminDongCode() {
+		return adminDongCode;
+	}
+
+	public String getLegalDongCode() {
+		return legalDongCode;
+	}
+
+	public String getLegalDongName() {
+		return legalDongName;
 	}
 
 	public String getLotAddress() {
