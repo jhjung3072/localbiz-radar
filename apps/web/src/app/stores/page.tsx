@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { StoreTable } from "@/features/stores/store-table";
 
 export default function StoresPage() {
@@ -15,7 +16,13 @@ export default function StoresPage() {
           </p>
         </div>
       </section>
-      <StoreTable />
+      <Suspense
+        fallback={
+          <div className="h-96 animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
+        }
+      >
+        <StoreTable />
+      </Suspense>
     </div>
   );
 }

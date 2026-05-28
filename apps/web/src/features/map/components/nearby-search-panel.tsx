@@ -13,8 +13,10 @@ type NearbySearchPanelProps = {
   isLoading: boolean;
   isError: boolean;
   hasSearched: boolean;
+  selectedStoreId?: number;
   onRetry: () => void;
   onSelectStore: (store: StoreMapItem | StoreNearbyItem) => void;
+  onAddCandidate?: (store: StoreNearbyItem) => void;
 };
 
 export function NearbySearchPanel({
@@ -24,8 +26,10 @@ export function NearbySearchPanel({
   isLoading,
   isError,
   hasSearched,
+  selectedStoreId,
   onRetry,
   onSelectStore,
+  onAddCandidate,
 }: NearbySearchPanelProps) {
   return (
     <section
@@ -85,23 +89,42 @@ export function NearbySearchPanel({
           <ul className="space-y-2">
             {stores.map((store) => (
               <li key={store.id}>
-                <button
-                  type="button"
-                  className="flex w-full items-start justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-sm transition hover:border-amber-300 hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-amber-500/30"
-                  onClick={() => onSelectStore(store)}
+                <div
+                  className={
+                    selectedStoreId === store.id
+                      ? "rounded-md border border-amber-300 bg-amber-50 p-2"
+                      : "rounded-md border border-slate-200 bg-white p-2"
+                  }
                 >
-                  <span>
-                    <span className="block font-semibold text-slate-950">
-                      {store.storeName}
+                  <button
+                    type="button"
+                    className="flex w-full items-start justify-between gap-3 rounded-md px-1 py-1 text-left text-sm transition hover:bg-white/70 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-amber-500/30"
+                    onClick={() => onSelectStore(store)}
+                  >
+                    <span>
+                      <span className="block font-semibold text-slate-950">
+                        {store.storeName}
+                      </span>
+                      <span className="mt-1 block text-xs text-slate-500">
+                        {store.categorySmallName} · {store.dong}
+                      </span>
                     </span>
-                    <span className="mt-1 block text-xs text-slate-500">
-                      {store.categorySmallName} · {store.dong}
+                    <span className="shrink-0 rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
+                      {formatDistance(store.distanceMeters)}
                     </span>
-                  </span>
-                  <span className="shrink-0 rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
-                    {formatDistance(store.distanceMeters)}
-                  </span>
-                </button>
+                  </button>
+                  {onAddCandidate ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-full"
+                      onClick={() => onAddCandidate(store)}
+                    >
+                      후보에 추가
+                    </Button>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>

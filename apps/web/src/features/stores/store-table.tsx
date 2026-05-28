@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -8,8 +8,31 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-react";
+import {
+  BookmarkPlus,
+  ChevronLeft,
+  ChevronRight,
+  Save,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActiveFilterChips } from "@/features/explore/components/active-filter-chips";
+import { CandidateTray } from "@/features/explore/components/candidate-tray";
+import { RecentSearches } from "@/features/explore/components/recent-searches";
+import { ViewOnMapLink } from "@/features/explore/components/view-on-map-link";
+import { useCandidateTray } from "@/features/explore/hooks/use-candidate-tray";
+import { useExploreUrlState } from "@/features/explore/hooks/use-explore-url-state";
+import { useRecentSearches } from "@/features/explore/hooks/use-recent-searches";
+import {
+  clearCategoryQuery,
+  clearRegionQuery,
+  serializeExploreQuery,
+} from "@/features/explore/lib/explore-url-params";
+import {
+  createCandidateRegion,
+  createCandidateStore,
+} from "@/features/explore/lib/candidate-storage";
 import {
   getRegions,
   getStoreCategories,
@@ -19,7 +42,7 @@ import { storeQueryKeys } from "@/features/stores/api/store-query-keys";
 import type { StoreListItem, StoreSearchParams } from "@/features/stores/types";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
-const columns: ColumnDef<StoreListItem>[] = [
+const baseColumns: ColumnDef<StoreListItem>[] = [
   { accessorKey: "storeName", header: "상호명" },
   { accessorKey: "categoryLargeName", header: "대분류" },
   { accessorKey: "categoryMediumName", header: "중분류" },
@@ -35,15 +58,11 @@ const columns: ColumnDef<StoreListItem>[] = [
 ];
 
 export function StoreTable() {
-  const [keyword, setKeyword] = useState("");
-  const [sido, setSido] = useState("all");
-  const [sigungu, setSigungu] = useState("all");
-  const [dong, setDong] = useState("all");
-  const [categoryLargeCode, setCategoryLargeCode] = useState("all");
-  const [categoryMediumCode, setCategoryMediumCode] = useState("all");
-  const [categorySmallCode, setCategorySmallCode] = useState("all");
-  const [page, setPage] = useState(0);
-  const [size] = useState(10);
+  const { query, setQuery, replaceQuery, pathname } = useExploreUrlState();
+  const [keywordInput, setKeywordInput] = useState(query.keyword);
+  const keywordInputRef = useRef<HTMLInputElement>(null);
+  const candidateTray = useCandidateTray();
+  const recentSearches = useRecentSearches();
 
   const categoriesQuery = useQuery({
     queryKey: storeQueryKeys.categories(),
@@ -54,37 +73,40 @@ export function StoreTable() {
     queryFn: getRegions,
   });
   const selectedSido = regionsQuery.data?.find(
-    (region) => region.sidoCode === sido,
+    (region) => region.sidoCode === query.ctprvnCd,
   );
   const sigunguOptions = selectedSido?.sigunguList ?? [];
   const selectedSigungu = sigunguOptions.find(
-    (sigunguOption) => sigunguOption.sigunguCode === sigungu,
+    (sigunguOption) => sigunguOption.sigunguCode === query.signguCd,
   );
   const dongOptions = selectedSigungu?.dongList ?? [];
-  const selectedDong = dongOptions.find((option) => option.dongCode === dong);
+  const selectedDong = dongOptions.find((option) => option.dongCode === query.adongCd);
 
   const storeParams = useMemo<StoreSearchParams>(
     () => ({
-      keyword: keyword.trim(),
-      sido: selectedSido?.sidoName ?? "all",
-      sigungu: selectedSigungu?.sigunguName ?? "all",
-      dong: selectedDong?.dongName ?? "all",
-      categoryLargeCode,
-      categoryMediumCode,
-      categorySmallCode,
-      page,
-      size,
+      keyword: query.keyword.trim(),
+      sido: selectedSido?.sidoName ?? query.ctprvnNm ?? "all",
+      sigungu: selectedSigungu?.sigunguName ?? query.signguNm ?? "all",
+      dong: selectedDong?.dongName ?? query.adongNm ?? "all",
+      categoryLargeCode: query.indsLclsCd,
+      categoryMediumCode: query.indsMclsCd,
+      categorySmallCode: query.indsSclsCd,
+      page: query.page,
+      size: query.size,
     }),
     [
-      categoryLargeCode,
-      categoryMediumCode,
-      categorySmallCode,
-      keyword,
-      page,
+      query.adongNm,
+      query.ctprvnNm,
+      query.indsLclsCd,
+      query.indsMclsCd,
+      query.indsSclsCd,
+      query.keyword,
+      query.page,
+      query.signguNm,
+      query.size,
       selectedDong,
       selectedSido,
       selectedSigungu,
-      size,
     ],
   );
 
@@ -94,17 +116,39 @@ export function StoreTable() {
   });
 
   const selectedLargeCategory = categoriesQuery.data?.find(
-    (category) => category.largeCode === categoryLargeCode,
+    (category) => category.largeCode === query.indsLclsCd,
   );
   const mediumCategoryOptions = selectedLargeCategory?.mediumCategories ?? [];
   const selectedMediumCategory = mediumCategoryOptions.find(
-    (category) => category.mediumCode === categoryMediumCode,
+    (category) => category.mediumCode === query.indsMclsCd,
   );
   const smallCategoryOptions = selectedMediumCategory?.smallCategories ?? [];
 
   const stores = storesQuery.data?.content ?? [];
   const totalElements = storesQuery.data?.totalElements ?? 0;
   const totalPages = storesQuery.data?.totalPages ?? 0;
+  const columns = useMemo<ColumnDef<StoreListItem>[]>(
+    () => [
+      ...baseColumns,
+      {
+        id: "actions",
+        header: "후보",
+        cell: ({ row }) => (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addStoreCandidate(row.original)}
+          >
+            <BookmarkPlus className="size-4" aria-hidden="true" />
+            추가
+          </Button>
+        ),
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [query],
+  );
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -112,41 +156,197 @@ export function StoreTable() {
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-  const visibleStart = totalElements > 0 ? page * size + 1 : 0;
-  const visibleEnd = Math.min((page + 1) * size, totalElements);
+  const visibleStart = totalElements > 0 ? query.page * query.size + 1 : 0;
+  const visibleEnd = Math.min((query.page + 1) * query.size, totalElements);
   const isFilterLoading = categoriesQuery.isLoading || regionsQuery.isLoading;
+  const currentQueryString = serializeExploreQuery(query).toString();
+
+  useEffect(() => {
+    setKeywordInput(query.keyword);
+  }, [query.keyword]);
 
   useEffect(() => {
     addSafeBreadcrumb("stores.search", "점포 목록 조회 조건 변경", {
-      hasKeyword: keyword.trim().length > 0,
-      keywordLength: keyword.trim().length,
-      hasRegionFilter: sido !== "all" || sigungu !== "all" || dong !== "all",
+      hasKeyword: query.keyword.trim().length > 0,
+      keywordLength: query.keyword.trim().length,
+      hasRegionFilter:
+        query.ctprvnCd !== "all" ||
+        query.signguCd !== "all" ||
+        query.adongCd !== "all",
       hasCategoryFilter:
-        categoryLargeCode !== "all" ||
-        categoryMediumCode !== "all" ||
-        categorySmallCode !== "all",
-      page,
+        query.indsLclsCd !== "all" ||
+        query.indsMclsCd !== "all" ||
+        query.indsSclsCd !== "all",
+      page: query.page,
     });
   }, [
-    categoryLargeCode,
-    categoryMediumCode,
-    categorySmallCode,
-    dong,
-    keyword,
-    page,
-    sido,
-    sigungu,
+    query.adongCd,
+    query.ctprvnCd,
+    query.indsLclsCd,
+    query.indsMclsCd,
+    query.indsSclsCd,
+    query.keyword,
+    query.page,
+    query.signguCd,
   ]);
 
-  function resetToFirstPage() {
-    setPage(0);
+  function submitKeywordSearch() {
+    const nextKeyword = keywordInputRef.current?.value.trim() ?? keywordInput.trim();
+    addSafeBreadcrumb("stores.search-submit", "점포 검색 실행", {
+      hasKeyword: nextKeyword.length > 0,
+      keywordLength: nextKeyword.length,
+    });
+    setKeywordInput(nextKeyword);
+    setQuery({ keyword: nextKeyword, page: 0 });
+    recentSearches.saveSearch({
+      label: buildRecentSearchLabel("점포 목록", nextKeyword),
+      path: "/stores",
+      query: serializeExploreQuery({ ...query, keyword: nextKeyword, page: 0 }).toString(),
+    });
+  }
+
+  function updateSido(value: string) {
+    const option = regionsQuery.data?.find((region) => region.sidoCode === value);
+    setQuery({
+      ctprvnCd: value,
+      ctprvnNm: option?.sidoName ?? "",
+      signguCd: "all",
+      signguNm: "",
+      adongCd: "all",
+      adongNm: "",
+      page: 0,
+    });
+  }
+
+  function updateSigungu(value: string) {
+    const option = sigunguOptions.find((sigunguOption) => sigunguOption.sigunguCode === value);
+    setQuery({
+      signguCd: value,
+      signguNm: option?.sigunguName ?? "",
+      adongCd: "all",
+      adongNm: "",
+      page: 0,
+    });
+  }
+
+  function updateDong(value: string) {
+    const option = dongOptions.find((dongOption) => dongOption.dongCode === value);
+    setQuery({
+      adongCd: value,
+      adongNm: option?.dongName ?? "",
+      page: 0,
+    });
+  }
+
+  function updateLargeCategory(value: string) {
+    const option = categoriesQuery.data?.find((category) => category.largeCode === value);
+    setQuery({
+      indsLclsCd: value,
+      indsLclsNm: option?.largeName ?? "",
+      indsMclsCd: "all",
+      indsMclsNm: "",
+      indsSclsCd: "all",
+      indsSclsNm: "",
+      page: 0,
+    });
+  }
+
+  function updateMediumCategory(value: string) {
+    const option = mediumCategoryOptions.find((category) => category.mediumCode === value);
+    setQuery({
+      indsMclsCd: value,
+      indsMclsNm: option?.mediumName ?? "",
+      indsSclsCd: "all",
+      indsSclsNm: "",
+      page: 0,
+    });
+  }
+
+  function updateSmallCategory(value: string) {
+    const option = smallCategoryOptions.find((category) => category.smallCode === value);
+    setQuery({
+      indsSclsCd: value,
+      indsSclsNm: option?.smallName ?? "",
+      page: 0,
+    });
+  }
+
+  function resetFilters() {
+    addSafeBreadcrumb("stores.reset-filters", "점포 필터 초기화");
+    replaceQuery({
+      ...query,
+      keyword: "",
+      ctprvnCd: "all",
+      ctprvnNm: "",
+      signguCd: "all",
+      signguNm: "",
+      adongCd: "all",
+      adongNm: "",
+      indsLclsCd: "all",
+      indsLclsNm: "",
+      indsMclsCd: "all",
+      indsMclsNm: "",
+      indsSclsCd: "all",
+      indsSclsNm: "",
+      page: 0,
+    });
+  }
+
+  function addRegionCandidate() {
+    const candidate = createCandidateRegion({
+      ctprvnCd: query.ctprvnCd,
+      ctprvnNm: selectedSido?.sidoName ?? query.ctprvnNm,
+      signguCd: query.signguCd,
+      signguNm: selectedSigungu?.sigunguName ?? query.signguNm,
+      adongCd: query.adongCd,
+      adongNm: selectedDong?.dongName ?? query.adongNm,
+      source: "STORES",
+    });
+    if (candidate) {
+      candidateTray.addCandidate(candidate);
+    }
+  }
+
+  function addStoreCandidate(store: StoreListItem) {
+    candidateTray.addCandidate(
+      createCandidateStore({
+        storeId: store.id,
+        storeName: store.storeName,
+        categoryName: store.categorySmallName,
+        ctprvnCd: query.ctprvnCd === "all" ? undefined : query.ctprvnCd,
+        ctprvnNm: selectedSido?.sidoName ?? store.sido,
+        signguCd: query.signguCd === "all" ? undefined : query.signguCd,
+        signguNm: selectedSigungu?.sigunguName ?? store.sigungu,
+        adongCd: query.adongCd === "all" ? undefined : query.adongCd,
+        adongNm: selectedDong?.dongName ?? store.dong,
+        latitude: store.latitude,
+        longitude: store.longitude,
+      }),
+    );
+  }
+
+  function saveCurrentSearch() {
+    recentSearches.saveSearch({
+      label: buildRecentSearchLabel("점포 목록", query.keyword),
+      path: "/stores",
+      query: currentQueryString,
+    });
   }
 
   return (
-    <section aria-label="점포 목록 테이블" className="space-y-5">
-      <div className="rounded-[8px] border border-slate-200 bg-white p-4 shadow-sm">
+    <section
+      aria-label="점포 목록 테이블"
+      className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]"
+    >
+      <div className="space-y-5">
+        <div className="rounded-[8px] border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid gap-3 lg:grid-cols-[1.2fr_repeat(6,minmax(0,1fr))]">
-          <div>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitKeywordSearch();
+            }}
+          >
             <label
               htmlFor="store-keyword"
               className="mb-2 block text-sm font-medium text-slate-700"
@@ -160,16 +360,14 @@ export function StoreTable() {
               />
               <input
                 id="store-keyword"
-                value={keyword}
-                onChange={(event) => {
-                  setKeyword(event.target.value);
-                  resetToFirstPage();
-                }}
+                ref={keywordInputRef}
+                value={keywordInput}
+                onChange={(event) => setKeywordInput(event.target.value)}
                 placeholder="상호명, 업종, 주소 검색"
                 className="h-10 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
               />
             </div>
-          </div>
+          </form>
 
           <div>
             <label
@@ -180,13 +378,8 @@ export function StoreTable() {
             </label>
             <select
               id="store-sido"
-              value={sido}
-              onChange={(event) => {
-                setSido(event.target.value);
-                setSigungu("all");
-                setDong("all");
-                resetToFirstPage();
-              }}
+              value={query.ctprvnCd}
+              onChange={(event) => updateSido(event.target.value)}
               disabled={isFilterLoading}
               className="h-10 w-full min-w-36 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
             >
@@ -208,13 +401,9 @@ export function StoreTable() {
             </label>
             <select
               id="store-sigungu"
-              value={sigungu}
-              onChange={(event) => {
-                setSigungu(event.target.value);
-                setDong("all");
-                resetToFirstPage();
-              }}
-              disabled={sido === "all" || isFilterLoading}
+              value={query.signguCd}
+              onChange={(event) => updateSigungu(event.target.value)}
+              disabled={query.ctprvnCd === "all" || isFilterLoading}
               className="h-10 w-full min-w-40 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
             >
               <option value="all">전체 시군구</option>
@@ -235,12 +424,9 @@ export function StoreTable() {
             </label>
             <select
               id="store-dong"
-              value={dong}
-              onChange={(event) => {
-                setDong(event.target.value);
-                resetToFirstPage();
-              }}
-              disabled={sigungu === "all" || isFilterLoading}
+              value={query.adongCd}
+              onChange={(event) => updateDong(event.target.value)}
+              disabled={query.signguCd === "all" || isFilterLoading}
               className="h-10 w-full min-w-36 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
             >
               <option value="all">전체 동</option>
@@ -261,13 +447,8 @@ export function StoreTable() {
             </label>
             <select
               id="store-category-large"
-              value={categoryLargeCode}
-              onChange={(event) => {
-                setCategoryLargeCode(event.target.value);
-                setCategoryMediumCode("all");
-                setCategorySmallCode("all");
-                resetToFirstPage();
-              }}
+              value={query.indsLclsCd}
+              onChange={(event) => updateLargeCategory(event.target.value)}
               disabled={isFilterLoading}
               className="h-10 w-full min-w-32 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
             >
@@ -289,13 +470,9 @@ export function StoreTable() {
             </label>
             <select
               id="store-category-medium"
-              value={categoryMediumCode}
-              onChange={(event) => {
-                setCategoryMediumCode(event.target.value);
-                setCategorySmallCode("all");
-                resetToFirstPage();
-              }}
-              disabled={categoryLargeCode === "all" || isFilterLoading}
+              value={query.indsMclsCd}
+              onChange={(event) => updateMediumCategory(event.target.value)}
+              disabled={query.indsLclsCd === "all" || isFilterLoading}
               className="h-10 w-full min-w-32 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
             >
               <option value="all">전체 중분류</option>
@@ -316,12 +493,9 @@ export function StoreTable() {
             </label>
             <select
               id="store-category-small"
-              value={categorySmallCode}
-              onChange={(event) => {
-                setCategorySmallCode(event.target.value);
-                resetToFirstPage();
-              }}
-              disabled={categoryMediumCode === "all" || isFilterLoading}
+              value={query.indsSclsCd}
+              onChange={(event) => updateSmallCategory(event.target.value)}
+              disabled={query.indsMclsCd === "all" || isFilterLoading}
               className="h-10 w-full min-w-32 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
             >
               <option value="all">전체 소분류</option>
@@ -333,11 +507,51 @@ export function StoreTable() {
             </select>
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
-          <SlidersHorizontal className="size-4" aria-hidden="true" />
-          검색 조건을 변경하면 첫 페이지부터 다시 조회합니다.
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+            검색 조건은 URL에 반영되어 공유할 수 있습니다.
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={submitKeywordSearch}>
+              <Search className="size-4" aria-hidden="true" />
+              검색
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addRegionCandidate}
+              disabled={query.signguCd === "all" && !query.signguNm}
+            >
+              <BookmarkPlus className="size-4" aria-hidden="true" />
+              현재 지역 후보 추가
+            </Button>
+            <Button type="button" variant="outline" onClick={saveCurrentSearch}>
+              <Save className="size-4" aria-hidden="true" />
+              현재 조건 저장
+            </Button>
+            <ViewOnMapLink
+              query={query}
+              onClick={() => {
+                addSafeBreadcrumb("stores.view-on-map", "지도에서 보기 클릭", {
+                  hasKeyword: query.keyword.length > 0,
+                  hasRegion: query.signguCd !== "all",
+                  hasCategory: query.indsLclsCd !== "all",
+                });
+              }}
+            />
+          </div>
         </div>
-      </div>
+        <div className="mt-4">
+          <ActiveFilterChips
+            query={query}
+            onClearKeyword={() => setQuery({ keyword: "", page: 0 })}
+            onClearRegion={() => replaceQuery(clearRegionQuery(query))}
+            onClearCategory={() => replaceQuery(clearCategoryQuery(query))}
+            onClearAll={resetFilters}
+          />
+        </div>
+        </div>
 
       {storesQuery.isError ? (
         <div
@@ -438,28 +652,48 @@ export function StoreTable() {
               type="button"
               variant="outline"
               size="sm"
-              disabled={page === 0 || storesQuery.isFetching}
-              onClick={() => setPage((currentPage) => Math.max(currentPage - 1, 0))}
+              disabled={query.page === 0 || storesQuery.isFetching}
+              onClick={() => setQuery({ page: Math.max(query.page - 1, 0) })}
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
               이전
             </Button>
             <span className="rounded-md bg-slate-100 px-3 py-1 font-medium text-slate-700">
-              {totalPages === 0 ? 0 : page + 1} / {totalPages}
+              {totalPages === 0 ? 0 : query.page + 1} / {totalPages}
             </span>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              disabled={page + 1 >= totalPages || storesQuery.isFetching}
-              onClick={() => setPage((currentPage) => currentPage + 1)}
+              disabled={query.page + 1 >= totalPages || storesQuery.isFetching}
+              onClick={() => setQuery({ page: query.page + 1 })}
             >
               다음
               <ChevronRight className="size-4" aria-hidden="true" />
             </Button>
           </div>
         </div>
+        </div>
       </div>
+      <aside className="space-y-4">
+        <CandidateTray
+          candidates={candidateTray.candidates}
+          isReady={candidateTray.isReady}
+          onRemove={candidateTray.removeCandidate}
+          onClear={candidateTray.clearCandidates}
+        />
+        <RecentSearches
+          searches={recentSearches.searches}
+          onClear={recentSearches.clearSearches}
+        />
+        <div className="rounded-[8px] border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-500 shadow-sm">
+          공유 URL:
+          <code className="mt-2 block break-all rounded bg-slate-50 p-2 text-xs text-slate-700">
+            {pathname}
+            {currentQueryString ? `?${currentQueryString}` : ""}
+          </code>
+        </div>
+      </aside>
     </section>
   );
 }
@@ -469,8 +703,8 @@ function LoadingRows() {
     <>
       {Array.from({ length: 5 }).map((_, rowIndex) => (
         <tr key={rowIndex}>
-          {columns.map((column, columnIndex) => (
-            <td key={`${String(column.id ?? columnIndex)}-${rowIndex}`} className="px-4 py-3">
+          {Array.from({ length: baseColumns.length + 1 }).map((_, columnIndex) => (
+            <td key={`${columnIndex}-${rowIndex}`} className="px-4 py-3">
               <div className="h-4 w-full max-w-32 animate-pulse rounded bg-slate-100" />
             </td>
           ))}
@@ -478,4 +712,8 @@ function LoadingRows() {
       ))}
     </>
   );
+}
+
+function buildRecentSearchLabel(scope: string, keyword: string) {
+  return keyword ? `${scope}: ${keyword.slice(0, 24)}` : `${scope}: 전체 조건`;
 }

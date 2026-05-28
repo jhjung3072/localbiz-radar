@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookmarkPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { RegionRankingItem } from "@/features/compare/types";
 
@@ -7,6 +7,7 @@ type RegionRankingTableProps = {
   isLoading: boolean;
   isError: boolean;
   onSelectTarget: (item: RegionRankingItem) => void;
+  onAddCandidate?: (item: RegionRankingItem) => void;
 };
 
 export function RegionRankingTable({
@@ -14,6 +15,7 @@ export function RegionRankingTable({
   isLoading,
   isError,
   onSelectTarget,
+  onAddCandidate,
 }: RegionRankingTableProps) {
   const items = data ?? [];
 
@@ -64,15 +66,28 @@ export function RegionRankingTable({
                     {item.categoryDiversityScore.toFixed(1)}
                   </td>
                   <td className="px-4 py-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onSelectTarget(item)}
-                    >
-                      비교 지역
-                      <ArrowRight className="size-4" aria-hidden="true" />
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onSelectTarget(item)}
+                      >
+                        비교 지역
+                        <ArrowRight className="size-4" aria-hidden="true" />
+                      </Button>
+                      {onAddCandidate ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onAddCandidate(item)}
+                        >
+                          후보
+                          <BookmarkPlus className="size-4" aria-hidden="true" />
+                        </Button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))

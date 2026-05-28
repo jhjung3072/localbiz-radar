@@ -1,14 +1,26 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ListChecks, Loader2, MapPin } from "lucide-react";
+import { BookmarkPlus, Loader2, Search } from "lucide-react";
 import {
   Map as KakaoMap,
   MapMarker,
   useKakaoLoader,
 } from "react-kakao-maps-sdk";
 import { Button } from "@/components/ui/button";
+import { CandidateTray } from "@/features/explore/components/candidate-tray";
+import { MapStoreList } from "@/features/explore/components/map-store-list";
+import { RecentSearches } from "@/features/explore/components/recent-searches";
+import { StoreDetailDrawer } from "@/features/explore/components/store-detail-drawer";
+import { useCandidateTray } from "@/features/explore/hooks/use-candidate-tray";
+import { useExploreUrlState } from "@/features/explore/hooks/use-explore-url-state";
+import { useRecentSearches } from "@/features/explore/hooks/use-recent-searches";
+import {
+  createCandidateRegion,
+  createCandidateStore,
+} from "@/features/explore/lib/candidate-storage";
+import { serializeExploreQuery } from "@/features/explore/lib/explore-url-params";
 import { getRegions, getStoreCategories } from "@/features/stores/api/store-api";
 import { storeQueryKeys } from "@/features/stores/api/store-query-keys";
 import {
@@ -20,7 +32,6 @@ import { MapEmptyState } from "@/features/map/components/map-empty-state";
 import { MapErrorState } from "@/features/map/components/map-error-state";
 import { MapFilterPanel } from "@/features/map/components/map-filter-panel";
 import { NearbySearchPanel } from "@/features/map/components/nearby-search-panel";
-import { StoreDetailPanel } from "@/features/map/components/store-detail-panel";
 import type {
   MapBounds,
   MapCenter,
@@ -39,20 +50,25 @@ const MAP_LIMIT = 500;
 const NEARBY_LIMIT = 100;
 
 export function StoreMap() {
-  const [sido, setSido] = useState("11");
-  const [sigungu, setSigungu] = useState("11680");
-  const [dong, setDong] = useState("all");
-  const [categoryLargeCode, setCategoryLargeCode] = useState("all");
-  const [categoryMediumCode, setCategoryMediumCode] = useState("all");
-  const [categorySmallCode, setCategorySmallCode] = useState("all");
-  const [radius, setRadius] = useState(500);
-  const [center, setCenter] = useState<MapCenter>(DEFAULT_CENTER);
-  const [viewport, setViewport] = useState<MapBounds | null>(null);
+  const { query, setQuery } = useExploreUrlState();
+  const initialCenter = useMemo(
+    () => ({
+      lat: query.lat ?? DEFAULT_CENTER.lat,
+      lng: query.lng ?? DEFAULT_CENTER.lng,
+    }),
+    [query.lat, query.lng],
+  );
+  const [center, setCenter] = useState<MapCenter>(initialCenter);
+  const [draftViewport, setDraftViewport] = useState<MapBounds | null>(null);
+  const [appliedViewport, setAppliedViewport] = useState<MapBounds | null>(null);
   const [selectedStore, setSelectedStore] = useState<
     StoreMapItem | StoreNearbyItem | null
   >(null);
   const [nearbyParams, setNearbyParams] =
     useState<NearbyStoreSearchParams | null>(null);
+  const hasCreatedInitialViewport = useRef(false);
+  const candidateTray = useCandidateTray();
+  const recentSearches = useRecentSearches();
 
   const categoriesQuery = useQuery({
     queryKey: storeQueryKeys.categories(),
@@ -63,37 +79,45 @@ export function StoreMap() {
     queryFn: getRegions,
   });
   const selectedSido = regionsQuery.data?.find(
-    (region) => region.sidoCode === sido,
+    (region) => region.sidoCode === query.ctprvnCd,
   );
   const selectedSigungu = selectedSido?.sigunguList.find(
-    (option) => option.sigunguCode === sigungu,
+    (option) => option.sigunguCode === query.signguCd,
   );
   const selectedDong = selectedSigungu?.dongList.find(
-    (option) => option.dongCode === dong,
+    (option) => option.dongCode === query.adongCd,
   );
-
+  const selectedLargeCategory = categoriesQuery.data?.find(
+    (category) => category.largeCode === query.indsLclsCd,
+  );
+  const selectedMediumCategory = selectedLargeCategory?.mediumCategories.find(
+    (category) => category.mediumCode === query.indsMclsCd,
+  );
   const mapParams = useMemo<MapStoreSearchParams>(
     () => ({
-      sido: normalizeSelectValue(selectedSido?.sidoName ?? "all"),
-      sigungu: normalizeSelectValue(selectedSigungu?.sigunguName ?? "all"),
-      dong: normalizeSelectValue(selectedDong?.dongName ?? "all"),
-      categoryLargeCode: normalizeSelectValue(categoryLargeCode),
-      categoryMediumCode: normalizeSelectValue(categoryMediumCode),
-      categorySmallCode: normalizeSelectValue(categorySmallCode),
-      minLat: viewport?.minLat,
-      maxLat: viewport?.maxLat,
-      minLng: viewport?.minLng,
-      maxLng: viewport?.maxLng,
+      sido: normalizeSelectValue(selectedSido?.sidoName ?? query.ctprvnNm),
+      sigungu: normalizeSelectValue(selectedSigungu?.sigunguName ?? query.signguNm),
+      dong: normalizeSelectValue(selectedDong?.dongName ?? query.adongNm),
+      categoryLargeCode: normalizeSelectValue(query.indsLclsCd),
+      categoryMediumCode: normalizeSelectValue(query.indsMclsCd),
+      categorySmallCode: normalizeSelectValue(query.indsSclsCd),
+      minLat: appliedViewport?.minLat,
+      maxLat: appliedViewport?.maxLat,
+      minLng: appliedViewport?.minLng,
+      maxLng: appliedViewport?.maxLng,
       limit: MAP_LIMIT,
     }),
     [
-      categoryLargeCode,
-      categoryMediumCode,
-      categorySmallCode,
+      appliedViewport,
+      query.adongNm,
+      query.ctprvnNm,
+      query.indsLclsCd,
+      query.indsMclsCd,
+      query.indsSclsCd,
+      query.signguNm,
       selectedDong,
       selectedSido,
       selectedSigungu,
-      viewport,
     ],
   );
   const mapStoresQuery = useQuery({
@@ -120,96 +144,293 @@ export function StoreMap() {
   );
   const appKey = process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY;
   const isFilterLoading = categoriesQuery.isLoading || regionsQuery.isLoading;
+  const hasPendingViewport =
+    draftViewport !== null && !isSameViewport(appliedViewport, draftViewport);
+
+  useEffect(() => {
+    if (query.lat === undefined || query.lng === undefined) {
+      return;
+    }
+    const nextCenter = { lat: query.lat, lng: query.lng };
+    const timer = window.setTimeout(() => {
+      setCenter((currentCenter) =>
+        isSameCenter(currentCenter, nextCenter) ? currentCenter : nextCenter,
+      );
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [query.lat, query.lng]);
 
   function resetNearbyState() {
     setNearbyParams(null);
     setSelectedStore(null);
   }
 
-  const handleCenterChange = useCallback((nextCenter: MapCenter) => {
-    setCenter((currentCenter) =>
-      isSameCenter(currentCenter, nextCenter) ? currentCenter : nextCenter,
-    );
-  }, []);
-
-  function handleNearbySearch() {
-    addSafeBreadcrumb("map.nearby-search", "지도 반경 검색 실행", {
-      radius,
-      hasCategory: categoryLargeCode !== "all",
+  function updateSido(value: string) {
+    const option = regionsQuery.data?.find((region) => region.sidoCode === value);
+    setQuery({
+      ctprvnCd: value,
+      ctprvnNm: option?.sidoName ?? "",
+      signguCd: "all",
+      signguNm: "",
+      adongCd: "all",
+      adongNm: "",
+      page: 0,
     });
-    setNearbyParams({
-      lat: center.lat,
-      lng: center.lng,
-      radius,
-      categoryLargeCode: normalizeSelectValue(categoryLargeCode),
-      categoryMediumCode: normalizeSelectValue(categoryMediumCode),
-      categorySmallCode: normalizeSelectValue(categorySmallCode),
-      limit: NEARBY_LIMIT,
+    resetNearbyState();
+  }
+
+  function updateSigungu(value: string) {
+    const option = selectedSido?.sigunguList.find((sigungu) => sigungu.sigunguCode === value);
+    setQuery({
+      signguCd: value,
+      signguNm: option?.sigunguName ?? "",
+      adongCd: "all",
+      adongNm: "",
+      page: 0,
+    });
+    resetNearbyState();
+  }
+
+  function updateDong(value: string) {
+    const option = selectedSigungu?.dongList.find((dong) => dong.dongCode === value);
+    setQuery({
+      adongCd: value,
+      adongNm: option?.dongName ?? "",
+      page: 0,
+    });
+    resetNearbyState();
+  }
+
+  function updateLargeCategory(value: string) {
+    const option = categoriesQuery.data?.find((category) => category.largeCode === value);
+    setQuery({
+      indsLclsCd: value,
+      indsLclsNm: option?.largeName ?? "",
+      indsMclsCd: "all",
+      indsMclsNm: "",
+      indsSclsCd: "all",
+      indsSclsNm: "",
+      page: 0,
+    });
+    resetNearbyState();
+  }
+
+  function updateMediumCategory(value: string) {
+    const option = selectedLargeCategory?.mediumCategories.find(
+      (category) => category.mediumCode === value,
+    );
+    setQuery({
+      indsMclsCd: value,
+      indsMclsNm: option?.mediumName ?? "",
+      indsSclsCd: "all",
+      indsSclsNm: "",
+      page: 0,
+    });
+    resetNearbyState();
+  }
+
+  function updateSmallCategory(value: string) {
+    const option = selectedMediumCategory?.smallCategories.find(
+      (category) => category.smallCode === value,
+    );
+    setQuery({
+      indsSclsCd: value,
+      indsSclsNm: option?.smallName ?? "",
+      page: 0,
+    });
+    resetNearbyState();
+  }
+
+  function handleMapAreaSearch() {
+    if (!draftViewport) {
+      return;
+    }
+    addSafeBreadcrumb("map.viewport-search", "현재 지도 영역에서 검색", {
+      hasRegion: query.signguCd !== "all",
+      hasCategory: query.indsLclsCd !== "all",
+    });
+    setAppliedViewport(draftViewport);
+    setQuery(
+      {
+        lat: center.lat,
+        lng: center.lng,
+        radius: query.radius,
+      },
+      { replace: true },
+    );
+    recentSearches.saveSearch({
+      label: "지도 영역 검색",
+      path: "/map",
+      query: serializeExploreQuery({
+        ...query,
+        lat: center.lat,
+        lng: center.lng,
+      }).toString(),
     });
   }
 
-  const handleSelectStore = useCallback((store: StoreMapItem | StoreNearbyItem) => {
-    setSelectedStore(store);
-    handleCenterChange({ lat: store.latitude, lng: store.longitude });
-  }, [handleCenterChange]);
-
-  const handleViewportChange = useCallback((nextViewport: MapBounds) => {
-    setViewport((currentViewport) =>
-      isSameViewport(currentViewport, nextViewport) ? currentViewport : nextViewport,
+  function handleNearbySearch() {
+    addSafeBreadcrumb("map.nearby-search", "지도 반경 검색 실행", {
+      radius: query.radius,
+      hasCategory: query.indsLclsCd !== "all",
+    });
+    const nextParams = {
+      lat: center.lat,
+      lng: center.lng,
+      radius: query.radius,
+      categoryLargeCode: normalizeSelectValue(query.indsLclsCd),
+      categoryMediumCode: normalizeSelectValue(query.indsMclsCd),
+      categorySmallCode: normalizeSelectValue(query.indsSclsCd),
+      limit: NEARBY_LIMIT,
+    };
+    setNearbyParams(nextParams);
+    setQuery(
+      {
+        lat: center.lat,
+        lng: center.lng,
+        radius: query.radius,
+      },
+      { replace: true },
     );
+    recentSearches.saveSearch({
+      label: `반경 ${query.radius.toLocaleString("ko-KR")}m 검색`,
+      path: "/map",
+      query: serializeExploreQuery({
+        ...query,
+        lat: center.lat,
+        lng: center.lng,
+      }).toString(),
+    });
+  }
+
+  const handleSelectStore = useCallback(
+    (store: StoreMapItem | StoreNearbyItem, source: "marker" | "list" = "list") => {
+      addSafeBreadcrumb(
+        source === "marker" ? "map.marker-click" : "map.list-item-click",
+        source === "marker" ? "지도 marker 클릭" : "지도 목록 item 클릭",
+        {
+          storeId: store.id,
+          categoryLargeCode: store.categoryLargeCode,
+        },
+      );
+      setSelectedStore(store);
+      const nextCenter = { lat: store.latitude, lng: store.longitude };
+      setCenter(nextCenter);
+      setQuery(
+        {
+          lat: nextCenter.lat,
+          lng: nextCenter.lng,
+        },
+        { replace: true },
+      );
+    },
+    [setQuery],
+  );
+
+  const handleMapReady = useCallback((map: kakao.maps.Map) => {
+    const nextCenter = readCenter(map);
+    const nextViewport = readBounds(map);
+    setCenter((currentCenter) =>
+      isSameCenter(currentCenter, nextCenter) ? currentCenter : nextCenter,
+    );
+    setDraftViewport(nextViewport);
+    if (!hasCreatedInitialViewport.current) {
+      setAppliedViewport(nextViewport);
+      hasCreatedInitialViewport.current = true;
+    }
   }, []);
+
+  function addRegionCandidate() {
+    const candidate = createCandidateRegion({
+      ctprvnCd: query.ctprvnCd,
+      ctprvnNm: selectedSido?.sidoName ?? query.ctprvnNm,
+      signguCd: query.signguCd,
+      signguNm: selectedSigungu?.sigunguName ?? query.signguNm,
+      adongCd: query.adongCd,
+      adongNm: selectedDong?.dongName ?? query.adongNm,
+      source: "MAP",
+    });
+    if (candidate) {
+      candidateTray.addCandidate(candidate);
+    }
+  }
+
+  function addStoreCandidate(store: StoreMapItem | StoreNearbyItem) {
+    candidateTray.addCandidate(
+      createCandidateStore({
+        storeId: store.id,
+        storeName: store.storeName,
+        categoryName: store.categorySmallName,
+        ctprvnCd: query.ctprvnCd === "all" ? undefined : query.ctprvnCd,
+        ctprvnNm: selectedSido?.sidoName ?? store.sido,
+        signguCd: query.signguCd === "all" ? undefined : query.signguCd,
+        signguNm: selectedSigungu?.sigunguName ?? store.sigungu,
+        adongCd: query.adongCd === "all" ? undefined : query.adongCd,
+        adongNm: selectedDong?.dongName ?? store.dong,
+        latitude: store.latitude,
+        longitude: store.longitude,
+      }),
+    );
+  }
 
   return (
     <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
       <div className="space-y-4">
         <MapFilterPanel
-          sido={sido}
-          sigungu={sigungu}
-          dong={dong}
-          categoryLargeCode={categoryLargeCode}
-          categoryMediumCode={categoryMediumCode}
-          categorySmallCode={categorySmallCode}
-          radius={radius}
+          sido={query.ctprvnCd}
+          sigungu={query.signguCd}
+          dong={query.adongCd}
+          categoryLargeCode={query.indsLclsCd}
+          categoryMediumCode={query.indsMclsCd}
+          categorySmallCode={query.indsSclsCd}
+          radius={query.radius}
           regions={regionsQuery.data ?? []}
           categories={categoriesQuery.data ?? []}
           isLoading={isFilterLoading}
           markerCount={mapStoresQuery.data?.length ?? 0}
           isNearbyLoading={nearbyStoresQuery.isFetching}
-          onSidoChange={(value) => {
-            setSido(value);
-            setSigungu("all");
-            setDong("all");
-            resetNearbyState();
-          }}
-          onSigunguChange={(value) => {
-            setSigungu(value);
-            setDong("all");
-            resetNearbyState();
-          }}
-          onDongChange={(value) => {
-            setDong(value);
-            resetNearbyState();
-          }}
-          onCategoryLargeChange={(value) => {
-            setCategoryLargeCode(value);
-            setCategoryMediumCode("all");
-            setCategorySmallCode("all");
-            resetNearbyState();
-          }}
-          onCategoryMediumChange={(value) => {
-            setCategoryMediumCode(value);
-            setCategorySmallCode("all");
-            resetNearbyState();
-          }}
-          onCategorySmallChange={(value) => {
-            setCategorySmallCode(value);
-            resetNearbyState();
-          }}
-          onRadiusChange={setRadius}
+          onSidoChange={updateSido}
+          onSigunguChange={updateSigungu}
+          onDongChange={updateDong}
+          onCategoryLargeChange={updateLargeCategory}
+          onCategoryMediumChange={updateMediumCategory}
+          onCategorySmallChange={updateSmallCategory}
+          onRadiusChange={(value) => setQuery({ radius: value })}
           onNearbySearch={handleNearbySearch}
         />
 
-        <StoreDetailPanel store={selectedStore} />
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={addRegionCandidate}
+          disabled={query.signguCd === "all" && !query.signguNm}
+        >
+          <BookmarkPlus className="size-4" aria-hidden="true" />
+          현재 지역 후보 추가
+        </Button>
+
+        <StoreDetailDrawer
+          store={selectedStore}
+          distanceMeters={
+            selectedStore && "distanceMeters" in selectedStore
+              ? selectedStore.distanceMeters
+              : undefined
+          }
+          onAddCandidate={addStoreCandidate}
+        />
+
+        <CandidateTray
+          candidates={candidateTray.candidates}
+          isReady={candidateTray.isReady}
+          onRemove={candidateTray.removeCandidate}
+          onClear={candidateTray.clearCandidates}
+        />
+
+        <RecentSearches
+          searches={recentSearches.searches}
+          onClear={recentSearches.clearSearches}
+        />
       </div>
 
       <div className="space-y-4">
@@ -227,30 +448,35 @@ export function StoreMap() {
             selectedStore={selectedStore}
             isStoreLoading={mapStoresQuery.isLoading || mapStoresQuery.isFetching}
             isStoreError={mapStoresQuery.isError}
-            onCenterChange={handleCenterChange}
-            onViewportChange={handleViewportChange}
-            onSelectStore={handleSelectStore}
+            hasPendingViewport={hasPendingViewport}
+            onMapReady={handleMapReady}
+            onSelectStore={(store) => handleSelectStore(store, "marker")}
+            onViewportSearch={handleMapAreaSearch}
             onRetry={() => mapStoresQuery.refetch()}
           />
         )}
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <StoreListPanel
+          <MapStoreList
             stores={mapStoresQuery.data ?? []}
+            selectedStoreId={selectedStore?.id}
             isLoading={mapStoresQuery.isLoading}
             isError={mapStoresQuery.isError}
-            onSelectStore={handleSelectStore}
+            onSelectStore={(store) => handleSelectStore(store, "list")}
+            onAddCandidate={addStoreCandidate}
             onRetry={() => mapStoresQuery.refetch()}
           />
           <NearbySearchPanel
             center={center}
-            radius={radius}
+            radius={query.radius}
             stores={nearbyStores}
+            selectedStoreId={selectedStore?.id}
             isLoading={nearbyStoresQuery.isFetching}
             isError={nearbyStoresQuery.isError}
             hasSearched={nearbyParams !== null}
             onRetry={() => nearbyStoresQuery.refetch()}
-            onSelectStore={handleSelectStore}
+            onSelectStore={(store) => handleSelectStore(store, "list")}
+            onAddCandidate={addStoreCandidate}
           />
         </div>
       </div>
@@ -266,9 +492,10 @@ type KakaoStoreMapProps = {
   selectedStore: StoreMapItem | StoreNearbyItem | null;
   isStoreLoading: boolean;
   isStoreError: boolean;
-  onCenterChange: (center: MapCenter) => void;
-  onViewportChange: (bounds: MapBounds) => void;
+  hasPendingViewport: boolean;
+  onMapReady: (map: kakao.maps.Map) => void;
   onSelectStore: (store: StoreMapItem) => void;
+  onViewportSearch: () => void;
   onRetry: () => void;
 };
 
@@ -280,21 +507,15 @@ function KakaoStoreMap({
   selectedStore,
   isStoreLoading,
   isStoreError,
-  onCenterChange,
-  onViewportChange,
+  hasPendingViewport,
+  onMapReady,
   onSelectStore,
+  onViewportSearch,
   onRetry,
 }: KakaoStoreMapProps) {
   const [isMapLoading, mapLoadError] = useKakaoLoader({
     appkey: appKey,
   });
-  const handleMapReady = useCallback(
-    (map: kakao.maps.Map) => {
-      onCenterChange(readCenter(map));
-      onViewportChange(readBounds(map));
-    },
-    [onCenterChange, onViewportChange],
-  );
 
   if (mapLoadError) {
     return (
@@ -315,8 +536,8 @@ function KakaoStoreMap({
         isPanto
         level={5}
         className="h-[520px] w-full"
-        onCreate={handleMapReady}
-        onIdle={handleMapReady}
+        onCreate={onMapReady}
+        onIdle={onMapReady}
       >
         {stores.map((store) => {
           const isNearbyStore = nearbyStoreIds.has(store.id);
@@ -351,6 +572,19 @@ function KakaoStoreMap({
         </div>
       ) : null}
 
+      {hasPendingViewport ? (
+        <div className="absolute inset-x-4 top-16 flex justify-center">
+          <Button
+            type="button"
+            className="bg-teal-700 text-white shadow-lg hover:bg-teal-800"
+            onClick={onViewportSearch}
+          >
+            <Search className="size-4" aria-hidden="true" />
+            현재 지도 영역에서 검색
+          </Button>
+        </div>
+      ) : null}
+
       {isStoreError ? (
         <div className="absolute inset-x-4 bottom-4">
           <MapErrorState onRetry={onRetry} />
@@ -369,104 +603,8 @@ function KakaoStoreMap({
   );
 }
 
-type StoreListPanelProps = {
-  stores: StoreMapItem[];
-  isLoading: boolean;
-  isError: boolean;
-  onSelectStore: (store: StoreMapItem) => void;
-  onRetry: () => void;
-};
-
-function StoreListPanel({
-  stores,
-  isLoading,
-  isError,
-  onSelectStore,
-  onRetry,
-}: StoreListPanelProps) {
-  return (
-    <section
-      aria-label="지도 점포 목록"
-      className="rounded-[8px] border border-slate-200 bg-white shadow-sm"
-    >
-      <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
-          <ListChecks className="size-4 text-teal-700" aria-hidden="true" />
-          지도 내 점포
-        </h2>
-        <span className="text-sm text-slate-500">
-          {stores.length.toLocaleString("ko-KR")}개
-        </span>
-      </div>
-
-      <div className="max-h-[320px] overflow-y-auto p-3">
-        {isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-16 animate-pulse rounded-md border border-slate-100 bg-slate-50"
-              />
-            ))}
-          </div>
-        ) : null}
-
-        {isError ? (
-          <div className="rounded-md bg-rose-50 p-3 text-sm text-rose-800">
-            <p className="font-semibold">점포 정보를 불러오지 못했습니다.</p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-3 border-rose-200 bg-white text-rose-800 hover:bg-rose-100"
-              onClick={onRetry}
-            >
-              다시 시도
-            </Button>
-          </div>
-        ) : null}
-
-        {!isLoading && !isError && stores.length === 0 ? (
-          <div className="rounded-md bg-slate-50 p-4 text-sm text-slate-500">
-            조건에 맞는 점포가 없습니다.
-          </div>
-        ) : null}
-
-        {!isLoading && !isError && stores.length > 0 ? (
-          <ul className="space-y-2">
-            {stores.map((store) => (
-              <li key={store.id}>
-                <button
-                  type="button"
-                  className="flex w-full items-start gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-left transition hover:border-teal-300 hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/30"
-                  onClick={() => onSelectStore(store)}
-                >
-                  <span className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-700">
-                    <MapPin className="size-4" aria-hidden="true" />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold text-slate-950">
-                      {store.storeName}
-                    </span>
-                    <span className="mt-1 block text-xs leading-5 text-slate-500">
-                      {store.categorySmallName} · {store.sigungu} {store.dong}
-                    </span>
-                    <span className="mt-1 block text-xs leading-5 text-slate-500">
-                      {store.roadAddress ?? "도로명 주소 없음"}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
-function normalizeSelectValue(value: string) {
-  return value === "all" ? undefined : value;
+function normalizeSelectValue(value?: string) {
+  return value && value !== "all" ? value : undefined;
 }
 
 function mergeStores(mapStores: StoreMapItem[], nearbyStores: StoreNearbyItem[]) {

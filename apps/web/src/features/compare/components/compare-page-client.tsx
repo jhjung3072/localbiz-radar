@@ -25,6 +25,9 @@ import {
   saveRecentComparison,
   type RecentComparison,
 } from "@/features/compare/lib/recent-comparison-storage";
+import { CandidateTray } from "@/features/explore/components/candidate-tray";
+import { useCandidateTray } from "@/features/explore/hooks/use-candidate-tray";
+import { createCandidateRegion } from "@/features/explore/lib/candidate-storage";
 import type {
   CompareRegionsPayload,
   CompareSelection,
@@ -48,6 +51,7 @@ export function ComparePageClient() {
   const [submittedSelection, setSubmittedSelection] =
     useState<CompareSelection>(initialSelection);
   const [recentComparisons, setRecentComparisons] = useState<RecentComparison[]>([]);
+  const candidateTray = useCandidateTray();
 
   const regionsQuery = useQuery({
     queryKey: masterQueryKeys.regions(),
@@ -94,6 +98,14 @@ export function ComparePageClient() {
     queryFn: () => getRegionRanking(rankingParams),
     enabled: hasMasterData,
   });
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSelection(initialSelection);
+      setSubmittedSelection(initialSelection);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [initialSelection]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -183,6 +195,13 @@ export function ComparePageClient() {
         onReset={handleReset}
       />
 
+      <CandidateTray
+        candidates={candidateTray.candidates}
+        isReady={candidateTray.isReady}
+        onRemove={candidateTray.removeCandidate}
+        onClear={candidateTray.clearCandidates}
+      />
+
       {!isMasterLoading && !hasMasterData ? (
         <CompareEmptyState
           title="마스터 데이터가 필요합니다"
@@ -233,6 +252,20 @@ export function ComparePageClient() {
         isLoading={rankingQuery.isLoading}
         isError={rankingQuery.isError}
         onSelectTarget={handleSelectRankingTarget}
+        onAddCandidate={(item) => {
+          const candidate = createCandidateRegion({
+            ctprvnCd: item.ctprvnCd ?? undefined,
+            ctprvnNm: item.ctprvnNm ?? undefined,
+            signguCd: item.signguCd ?? undefined,
+            signguNm: item.signguNm ?? undefined,
+            adongCd: item.adongCd ?? undefined,
+            adongNm: item.adongNm ?? undefined,
+            source: "RANKING",
+          });
+          if (candidate) {
+            candidateTray.addCandidate(candidate);
+          }
+        }}
       />
 
       <RecentComparisons

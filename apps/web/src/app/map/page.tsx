@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { StoreMap } from "@/features/map/components/store-map";
 
 export default function MapPage() {
@@ -16,7 +17,13 @@ export default function MapPage() {
         </div>
       </section>
 
-      <StoreMap />
+      <Suspense
+        fallback={
+          <div className="h-96 animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
+        }
+      >
+        <StoreMap />
+      </Suspense>
     </div>
   );
 }
