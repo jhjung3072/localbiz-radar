@@ -1,16 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { BookmarkPlus, Loader2, Search } from "lucide-react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { BookmarkPlus, Loader2 } from "lucide-react";
 import {
   Map as KakaoMap,
   MapMarker,
+  MarkerClusterer,
   useKakaoLoader,
 } from "react-kakao-maps-sdk";
 import { Button } from "@/components/ui/button";
 import { CandidateTray } from "@/features/explore/components/candidate-tray";
+import { MapSearchOverlay } from "@/features/explore/components/map-search-overlay";
 import { MapStoreList } from "@/features/explore/components/map-store-list";
+import { MarkerClusterToggle } from "@/features/explore/components/marker-cluster-toggle";
+import { PerformanceNotice } from "@/features/explore/components/performance-notice";
 import { RecentSearches } from "@/features/explore/components/recent-searches";
 import { StoreDetailDrawer } from "@/features/explore/components/store-detail-drawer";
 import { useCandidateTray } from "@/features/explore/hooks/use-candidate-tray";
@@ -27,7 +31,11 @@ import {
   getMapStores,
   getNearbyStores,
 } from "@/features/map/api/map-api";
-import { mapQueryKeys } from "@/features/map/api/map-query-keys";
+import {
+  mapQueryKeys,
+  normalizeMapStoreSearchParams,
+  normalizeNearbyStoreSearchParams,
+} from "@/features/map/api/map-query-keys";
 import { MapEmptyState } from "@/features/map/components/map-empty-state";
 import { MapErrorState } from "@/features/map/components/map-error-state";
 import { MapFilterPanel } from "@/features/map/components/map-filter-panel";
@@ -46,7 +54,7 @@ const DEFAULT_CENTER: MapCenter = {
   lat: 37.497952,
   lng: 127.027619,
 };
-const MAP_LIMIT = 500;
+const MAP_LIMIT = 1000;
 const NEARBY_LIMIT = 100;
 
 export function StoreMap() {
@@ -66,6 +74,7 @@ export function StoreMap() {
   >(null);
   const [nearbyParams, setNearbyParams] =
     useState<NearbyStoreSearchParams | null>(null);
+  const [isClusteringEnabled, setIsClusteringEnabled] = useState(true);
   const hasCreatedInitialViewport = useRef(false);
   const candidateTray = useCandidateTray();
   const recentSearches = useRecentSearches();
@@ -73,10 +82,14 @@ export function StoreMap() {
   const categoriesQuery = useQuery({
     queryKey: storeQueryKeys.categories(),
     queryFn: getStoreCategories,
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
   });
   const regionsQuery = useQuery({
     queryKey: storeQueryKeys.regions(),
     queryFn: getRegions,
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
   });
   const selectedSido = regionsQuery.data?.find(
     (region) => region.sidoCode === query.ctprvnCd,
@@ -120,14 +133,26 @@ export function StoreMap() {
       selectedSigungu,
     ],
   );
+  const normalizedMapParams = useMemo(
+    () => normalizeMapStoreSearchParams(mapParams),
+    [mapParams],
+  );
   const mapStoresQuery = useQuery({
-    queryKey: mapQueryKeys.stores(mapParams),
-    queryFn: () => getMapStores(mapParams),
+    queryKey: mapQueryKeys.stores(normalizedMapParams),
+    queryFn: () => getMapStores(normalizedMapParams),
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
   });
+  const normalizedNearbyParams = useMemo(
+    () => (nearbyParams ? normalizeNearbyStoreSearchParams(nearbyParams) : null),
+    [nearbyParams],
+  );
   const nearbyStoresQuery = useQuery({
-    queryKey: mapQueryKeys.nearby(nearbyParams),
-    queryFn: () => getNearbyStores(nearbyParams as NearbyStoreSearchParams),
-    enabled: nearbyParams !== null,
+    queryKey: mapQueryKeys.nearby(normalizedNearbyParams),
+    queryFn: () => getNearbyStores(normalizedNearbyParams as NearbyStoreSearchParams),
+    enabled: normalizedNearbyParams !== null,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
   });
 
   const nearbyStores = useMemo(
@@ -248,7 +273,9 @@ export function StoreMap() {
     addSafeBreadcrumb("map.viewport-search", "현재 지도 영역에서 검색", {
       hasRegion: query.signguCd !== "all",
       hasCategory: query.indsLclsCd !== "all",
+      markerCount: mapStoresQuery.data?.length ?? 0,
     });
+    markPerformance("map.viewport-search");
     setAppliedViewport(draftViewport);
     setQuery(
       {
@@ -274,6 +301,7 @@ export function StoreMap() {
       radius: query.radius,
       hasCategory: query.indsLclsCd !== "all",
     });
+    markPerformance("map.nearby-search");
     const nextParams = {
       lat: center.lat,
       lng: center.lng,
@@ -313,6 +341,7 @@ export function StoreMap() {
           categoryLargeCode: store.categoryLargeCode,
         },
       );
+      markPerformance(source === "marker" ? "map.marker-click" : "map.list-item-click");
       setSelectedStore(store);
       const nextCenter = { lat: store.latitude, lng: store.longitude };
       setCenter(nextCenter);
@@ -398,6 +427,18 @@ export function StoreMap() {
           onRadiusChange={(value) => setQuery({ radius: value })}
           onNearbySearch={handleNearbySearch}
         />
+        <MarkerClusterToggle
+          enabled={isClusteringEnabled}
+          markerCount={markerStores.length}
+          onChange={(enabled) => {
+            addSafeBreadcrumb("map.cluster-toggle", "지도 마커 클러스터링 변경", {
+              enabled,
+              markerCount: markerStores.length,
+            });
+            markPerformance("map.cluster-toggle");
+            setIsClusteringEnabled(enabled);
+          }}
+        />
 
         <Button
           type="button"
@@ -449,12 +490,17 @@ export function StoreMap() {
             isStoreLoading={mapStoresQuery.isLoading || mapStoresQuery.isFetching}
             isStoreError={mapStoresQuery.isError}
             hasPendingViewport={hasPendingViewport}
+            isClusteringEnabled={isClusteringEnabled}
             onMapReady={handleMapReady}
             onSelectStore={(store) => handleSelectStore(store, "marker")}
             onViewportSearch={handleMapAreaSearch}
             onRetry={() => mapStoresQuery.refetch()}
           />
         )}
+
+        {(mapStoresQuery.data?.length ?? 0) >= MAP_LIMIT ? (
+          <PerformanceNotice message="표시 성능을 위해 최대 1,000개 점포만 지도에 표시합니다. 지도를 확대하거나 필터를 조정해보세요." />
+        ) : null}
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <MapStoreList
@@ -493,6 +539,7 @@ type KakaoStoreMapProps = {
   isStoreLoading: boolean;
   isStoreError: boolean;
   hasPendingViewport: boolean;
+  isClusteringEnabled: boolean;
   onMapReady: (map: kakao.maps.Map) => void;
   onSelectStore: (store: StoreMapItem) => void;
   onViewportSearch: () => void;
@@ -508,6 +555,7 @@ function KakaoStoreMap({
   isStoreLoading,
   isStoreError,
   hasPendingViewport,
+  isClusteringEnabled,
   onMapReady,
   onSelectStore,
   onViewportSearch,
@@ -515,7 +563,24 @@ function KakaoStoreMap({
 }: KakaoStoreMapProps) {
   const [isMapLoading, mapLoadError] = useKakaoLoader({
     appkey: appKey,
+    libraries: ["clusterer"],
   });
+  const visibleClusterStores =
+    isClusteringEnabled && selectedStore
+      ? stores.filter((store) => store.id !== selectedStore.id)
+      : stores;
+  const selectedMarkerStore = selectedStore
+    ? stores.find((store) => store.id === selectedStore.id)
+    : undefined;
+  const markerNodes = visibleClusterStores.map((store) => (
+    <StoreMarker
+      key={store.id}
+      store={store}
+      isNearbyStore={nearbyStoreIds.has(store.id)}
+      isSelected={selectedStore?.id === store.id}
+      onSelectStore={onSelectStore}
+    />
+  ));
 
   if (mapLoadError) {
     return (
@@ -539,30 +604,26 @@ function KakaoStoreMap({
         onCreate={onMapReady}
         onIdle={onMapReady}
       >
-        {stores.map((store) => {
-          const isNearbyStore = nearbyStoreIds.has(store.id);
-          const isSelected = selectedStore?.id === store.id;
-
-          return (
-            <MapMarker
-              key={store.id}
-              position={{ lat: store.latitude, lng: store.longitude }}
-              title={`${store.storeName} ${store.categorySmallName}`}
-              image={isNearbyStore ? nearbyMarkerImage : defaultMarkerImage}
-              zIndex={isSelected ? 10 : isNearbyStore ? 5 : 1}
-              onClick={() => onSelectStore(store)}
-            >
-              {isSelected ? (
-                <div className="min-w-40 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-lg">
-                  <p className="font-semibold text-slate-950">{store.storeName}</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {store.categorySmallName}
-                  </p>
-                </div>
-              ) : null}
-            </MapMarker>
-          );
-        })}
+        {isClusteringEnabled ? (
+          <MarkerClusterer
+            averageCenter
+            minLevel={5}
+            minClusterSize={3}
+            gridSize={72}
+          >
+            {markerNodes}
+          </MarkerClusterer>
+        ) : (
+          markerNodes
+        )}
+        {isClusteringEnabled && selectedMarkerStore ? (
+          <StoreMarker
+            store={selectedMarkerStore}
+            isNearbyStore={nearbyStoreIds.has(selectedMarkerStore.id)}
+            isSelected
+            onSelectStore={onSelectStore}
+          />
+        ) : null}
       </KakaoMap>
 
       {isMapLoading || isStoreLoading ? (
@@ -572,18 +633,11 @@ function KakaoStoreMap({
         </div>
       ) : null}
 
-      {hasPendingViewport ? (
-        <div className="absolute inset-x-4 top-16 flex justify-center">
-          <Button
-            type="button"
-            className="bg-teal-700 text-white shadow-lg hover:bg-teal-800"
-            onClick={onViewportSearch}
-          >
-            <Search className="size-4" aria-hidden="true" />
-            현재 지도 영역에서 검색
-          </Button>
-        </div>
-      ) : null}
+      <MapSearchOverlay
+        visible={hasPendingViewport}
+        isLoading={isStoreLoading}
+        onSearch={onViewportSearch}
+      />
 
       {isStoreError ? (
         <div className="absolute inset-x-4 bottom-4">
@@ -600,6 +654,35 @@ function KakaoStoreMap({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function StoreMarker({
+  store,
+  isNearbyStore,
+  isSelected,
+  onSelectStore,
+}: {
+  store: StoreMapItem;
+  isNearbyStore: boolean;
+  isSelected: boolean;
+  onSelectStore: (store: StoreMapItem) => void;
+}) {
+  return (
+    <MapMarker
+      position={{ lat: store.latitude, lng: store.longitude }}
+      title={`${store.storeName} ${store.categorySmallName}`}
+      image={isNearbyStore || isSelected ? nearbyMarkerImage : defaultMarkerImage}
+      zIndex={isSelected ? 20 : isNearbyStore ? 5 : 1}
+      onClick={() => onSelectStore(store)}
+    >
+      {isSelected ? (
+        <div className="min-w-40 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-lg">
+          <p className="font-semibold text-slate-950">{store.storeName}</p>
+          <p className="mt-1 text-xs text-slate-500">{store.categorySmallName}</p>
+        </div>
+      ) : null}
+    </MapMarker>
   );
 }
 
@@ -655,6 +738,19 @@ function isSameCenter(currentCenter: MapCenter, nextCenter: MapCenter) {
     Math.abs(currentCenter.lat - nextCenter.lat) < 0.000001 &&
     Math.abs(currentCenter.lng - nextCenter.lng) < 0.000001
   );
+}
+
+function markPerformance(name: string) {
+  if (typeof window === "undefined" || !window.performance) {
+    return;
+  }
+
+  const startedAt = window.performance.now();
+  window.requestAnimationFrame(() => {
+    addSafeBreadcrumb("performance", `${name} 처리 시간`, {
+      durationMs: Math.round(window.performance.now() - startedAt),
+    });
+  });
 }
 
 const defaultMarkerImage = {

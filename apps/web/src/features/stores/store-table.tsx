@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type ColumnDef,
-  flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   BookmarkPlus,
   ChevronLeft,
@@ -19,6 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ActiveFilterChips } from "@/features/explore/components/active-filter-chips";
 import { CandidateTray } from "@/features/explore/components/candidate-tray";
+import { DebouncedSearchInput } from "@/features/explore/components/debounced-search-input";
+import { PerformanceNotice } from "@/features/explore/components/performance-notice";
 import { RecentSearches } from "@/features/explore/components/recent-searches";
 import { ViewOnMapLink } from "@/features/explore/components/view-on-map-link";
 import { useCandidateTray } from "@/features/explore/hooks/use-candidate-tray";
@@ -38,8 +39,13 @@ import {
   getStoreCategories,
   getStores,
 } from "@/features/stores/api/store-api";
-import { storeQueryKeys } from "@/features/stores/api/store-query-keys";
+import {
+  normalizeStoreSearchParams,
+  storeQueryKeys,
+} from "@/features/stores/api/store-query-keys";
+import { VirtualizedStoreList } from "@/features/stores/components/virtualized-store-list";
 import type { StoreListItem, StoreSearchParams } from "@/features/stores/types";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 const baseColumns: ColumnDef<StoreListItem>[] = [
@@ -61,16 +67,22 @@ export function StoreTable() {
   const { query, setQuery, replaceQuery, pathname } = useExploreUrlState();
   const [keywordInput, setKeywordInput] = useState(query.keyword);
   const keywordInputRef = useRef<HTMLInputElement>(null);
+  const lastSubmittedKeywordRef = useRef(query.keyword);
+  const debouncedKeywordInput = useDebouncedValue(keywordInput, 450);
   const candidateTray = useCandidateTray();
   const recentSearches = useRecentSearches();
 
   const categoriesQuery = useQuery({
     queryKey: storeQueryKeys.categories(),
     queryFn: getStoreCategories,
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
   });
   const regionsQuery = useQuery({
     queryKey: storeQueryKeys.regions(),
     queryFn: getRegions,
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
   });
   const selectedSido = regionsQuery.data?.find(
     (region) => region.sidoCode === query.ctprvnCd,
@@ -110,9 +122,15 @@ export function StoreTable() {
     ],
   );
 
+  const normalizedStoreParams = useMemo(
+    () => normalizeStoreSearchParams(storeParams),
+    [storeParams],
+  );
   const storesQuery = useQuery({
-    queryKey: storeQueryKeys.list(storeParams),
-    queryFn: () => getStores(storeParams),
+    queryKey: storeQueryKeys.list(normalizedStoreParams),
+    queryFn: () => getStores(normalizedStoreParams),
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
   });
 
   const selectedLargeCategory = categoriesQuery.data?.find(
@@ -163,7 +181,25 @@ export function StoreTable() {
 
   useEffect(() => {
     setKeywordInput(query.keyword);
+    lastSubmittedKeywordRef.current = query.keyword;
   }, [query.keyword]);
+
+  useEffect(() => {
+    const nextKeyword = debouncedKeywordInput.trim();
+    if (
+      nextKeyword === query.keyword ||
+      nextKeyword === lastSubmittedKeywordRef.current
+    ) {
+      return;
+    }
+
+    lastSubmittedKeywordRef.current = nextKeyword;
+    addSafeBreadcrumb("stores.debounced-search", "점포 검색 debounce 반영", {
+      hasKeyword: nextKeyword.length > 0,
+      keywordLength: nextKeyword.length,
+    });
+    setQuery({ keyword: nextKeyword, page: 0 }, { replace: true });
+  }, [debouncedKeywordInput, query.keyword, setQuery]);
 
   useEffect(() => {
     addSafeBreadcrumb("stores.search", "점포 목록 조회 조건 변경", {
@@ -196,6 +232,7 @@ export function StoreTable() {
       hasKeyword: nextKeyword.length > 0,
       keywordLength: nextKeyword.length,
     });
+    lastSubmittedKeywordRef.current = nextKeyword;
     setKeywordInput(nextKeyword);
     setQuery({ keyword: nextKeyword, page: 0 });
     recentSearches.saveSearch({
@@ -208,6 +245,7 @@ export function StoreTable() {
   function updateSido(value: string) {
     const option = regionsQuery.data?.find((region) => region.sidoCode === value);
     setQuery({
+      keyword: keywordInput.trim(),
       ctprvnCd: value,
       ctprvnNm: option?.sidoName ?? "",
       signguCd: "all",
@@ -221,6 +259,7 @@ export function StoreTable() {
   function updateSigungu(value: string) {
     const option = sigunguOptions.find((sigunguOption) => sigunguOption.sigunguCode === value);
     setQuery({
+      keyword: keywordInput.trim(),
       signguCd: value,
       signguNm: option?.sigunguName ?? "",
       adongCd: "all",
@@ -232,6 +271,7 @@ export function StoreTable() {
   function updateDong(value: string) {
     const option = dongOptions.find((dongOption) => dongOption.dongCode === value);
     setQuery({
+      keyword: keywordInput.trim(),
       adongCd: value,
       adongNm: option?.dongName ?? "",
       page: 0,
@@ -241,6 +281,7 @@ export function StoreTable() {
   function updateLargeCategory(value: string) {
     const option = categoriesQuery.data?.find((category) => category.largeCode === value);
     setQuery({
+      keyword: keywordInput.trim(),
       indsLclsCd: value,
       indsLclsNm: option?.largeName ?? "",
       indsMclsCd: "all",
@@ -254,6 +295,7 @@ export function StoreTable() {
   function updateMediumCategory(value: string) {
     const option = mediumCategoryOptions.find((category) => category.mediumCode === value);
     setQuery({
+      keyword: keywordInput.trim(),
       indsMclsCd: value,
       indsMclsNm: option?.mediumName ?? "",
       indsSclsCd: "all",
@@ -265,6 +307,7 @@ export function StoreTable() {
   function updateSmallCategory(value: string) {
     const option = smallCategoryOptions.find((category) => category.smallCode === value);
     setQuery({
+      keyword: keywordInput.trim(),
       indsSclsCd: value,
       indsSclsNm: option?.smallName ?? "",
       page: 0,
@@ -347,26 +390,15 @@ export function StoreTable() {
               submitKeywordSearch();
             }}
           >
-            <label
-              htmlFor="store-keyword"
-              className="mb-2 block text-sm font-medium text-slate-700"
-            >
-              키워드로 점포 검색
-            </label>
-            <div className="relative">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
-                aria-hidden="true"
-              />
-              <input
-                id="store-keyword"
-                ref={keywordInputRef}
-                value={keywordInput}
-                onChange={(event) => setKeywordInput(event.target.value)}
-                placeholder="상호명, 업종, 주소 검색"
-                className="h-10 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20"
-              />
-            </div>
+            <DebouncedSearchInput
+              id="store-keyword"
+              label="키워드로 점포 검색"
+              value={keywordInput}
+              inputRef={keywordInputRef}
+              onChange={setKeywordInput}
+              placeholder="상호명, 업종, 주소 검색"
+              debounceLabel="입력 후 잠시 멈추면 검색 조건이 자동 반영됩니다."
+            />
           </form>
 
           <div>
@@ -514,7 +546,7 @@ export function StoreTable() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={submitKeywordSearch}>
-              <Search className="size-4" aria-hidden="true" />
+              <SearchIcon />
               검색
             </Button>
             <Button
@@ -553,6 +585,10 @@ export function StoreTable() {
         </div>
         </div>
 
+      {query.size >= 50 ? (
+        <PerformanceNotice message="대량 결과에서도 화면에 보이는 행 중심으로 렌더링합니다. 더 넓은 탐색은 필터를 조정하거나 페이지를 이동해 확인하세요." />
+      ) : null}
+
       {storesQuery.isError ? (
         <div
           role="alert"
@@ -582,64 +618,13 @@ export function StoreTable() {
           ) : null}
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-[1040px] w-full border-collapse text-left text-sm">
-            <caption className="sr-only">
-              검색 조건에 맞는 점포 목록과 주소 정보를 표시합니다.
-            </caption>
-            <thead className="bg-slate-50 text-slate-600">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      scope="col"
-                      className="border-b border-slate-200 px-4 py-3 font-semibold"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {storesQuery.isLoading ? (
-                <LoadingRows />
-              ) : storesQuery.isError ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-4 py-12 text-center text-sm text-rose-700"
-                  >
-                    데이터를 불러오지 못했습니다.
-                  </td>
-                </tr>
-              ) : table.getRowModel().rows.length > 0 ? (
-                table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50">
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3 text-slate-700">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-4 py-12 text-center text-sm text-slate-500"
-                  >
-                    조건에 맞는 점포가 없습니다.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <VirtualizedStoreList
+            table={table}
+            columns={columns}
+            isLoading={storesQuery.isLoading}
+            isError={storesQuery.isError}
+            onRetry={() => storesQuery.refetch()}
+          />
         </div>
         <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <p>
@@ -653,7 +638,13 @@ export function StoreTable() {
               variant="outline"
               size="sm"
               disabled={query.page === 0 || storesQuery.isFetching}
-              onClick={() => setQuery({ page: Math.max(query.page - 1, 0) })}
+              onClick={() => {
+                addSafeBreadcrumb("stores.page-change", "점포 목록 이전 페이지", {
+                  page: Math.max(query.page - 1, 0),
+                  size: query.size,
+                });
+                setQuery({ page: Math.max(query.page - 1, 0) });
+              }}
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
               이전
@@ -666,7 +657,13 @@ export function StoreTable() {
               variant="outline"
               size="sm"
               disabled={query.page + 1 >= totalPages || storesQuery.isFetching}
-              onClick={() => setQuery({ page: query.page + 1 })}
+              onClick={() => {
+                addSafeBreadcrumb("stores.page-change", "점포 목록 다음 페이지", {
+                  page: query.page + 1,
+                  size: query.size,
+                });
+                setQuery({ page: query.page + 1 });
+              }}
             >
               다음
               <ChevronRight className="size-4" aria-hidden="true" />
@@ -698,22 +695,10 @@ export function StoreTable() {
   );
 }
 
-function LoadingRows() {
-  return (
-    <>
-      {Array.from({ length: 5 }).map((_, rowIndex) => (
-        <tr key={rowIndex}>
-          {Array.from({ length: baseColumns.length + 1 }).map((_, columnIndex) => (
-            <td key={`${columnIndex}-${rowIndex}`} className="px-4 py-3">
-              <div className="h-4 w-full max-w-32 animate-pulse rounded bg-slate-100" />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
-}
-
 function buildRecentSearchLabel(scope: string, keyword: string) {
   return keyword ? `${scope}: ${keyword.slice(0, 24)}` : `${scope}: 전체 조건`;
+}
+
+function SearchIcon() {
+  return <Search className="size-4" aria-hidden="true" />;
 }

@@ -1,13 +1,24 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
+import {
+  type ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { ActiveFilterChips } from "@/features/explore/components/active-filter-chips";
 import { CandidateRegionCard } from "@/features/explore/components/candidate-region-card";
 import { CandidateTray } from "@/features/explore/components/candidate-tray";
+import { DebouncedSearchInput } from "@/features/explore/components/debounced-search-input";
 import { ExploreFilterBar } from "@/features/explore/components/explore-filter-bar";
+import { MapSearchOverlay } from "@/features/explore/components/map-search-overlay";
 import { MapStoreList } from "@/features/explore/components/map-store-list";
+import { MarkerClusterToggle } from "@/features/explore/components/marker-cluster-toggle";
+import { PerformanceNotice } from "@/features/explore/components/performance-notice";
 import { RecentSearches } from "@/features/explore/components/recent-searches";
 import { StoreDetailDrawer } from "@/features/explore/components/store-detail-drawer";
+import { VirtualizedStoreList } from "@/features/stores/components/virtualized-store-list";
 import type { CandidateItem, ExploreQueryState } from "@/features/explore/types";
 import type { StoreMapItem } from "@/features/map/types";
+import type { StoreListItem } from "@/features/stores/types";
 
 const meta = {
   title: "Explore/Integrated UX",
@@ -88,6 +99,20 @@ const store: StoreMapItem = {
   latitude: 37.499,
   longitude: 127.032,
 };
+const storeRows: StoreListItem[] = Array.from({ length: 80 }).map((_, index) => ({
+  ...store,
+  id: index + 1,
+  storeName: `역삼 모닝커피 ${index + 1}`,
+}));
+const storeColumns: ColumnDef<StoreListItem>[] = [
+  { accessorKey: "storeName", header: "상호명" },
+  { accessorKey: "categoryLargeName", header: "대분류" },
+  { accessorKey: "categorySmallName", header: "소분류" },
+  { accessorKey: "sido", header: "시도" },
+  { accessorKey: "sigungu", header: "시군구" },
+  { accessorKey: "dong", header: "동" },
+  { accessorKey: "roadAddress", header: "주소" },
+];
 
 export const ExploreFilterBarStory: Story = {
   name: "ExploreFilterBar",
@@ -160,3 +185,75 @@ export const StoreDetailDrawerStory: Story = {
     <StoreDetailDrawer store={store} onAddCandidate={() => undefined} />
   ),
 };
+
+export const VirtualizedStoreListStory: Story = {
+  name: "VirtualizedStoreList",
+  render: () => <VirtualizedStoreListDemo />,
+};
+
+export const MarkerClusterToggleStory: Story = {
+  name: "MarkerClusterToggle",
+  render: () => (
+    <div className="max-w-sm">
+      <MarkerClusterToggle
+        enabled
+        markerCount={1280}
+        onChange={() => undefined}
+      />
+    </div>
+  ),
+};
+
+export const MapSearchOverlayStory: Story = {
+  name: "MapSearchOverlay",
+  render: () => (
+    <div className="relative h-40 rounded-[8px] bg-slate-100">
+      <MapSearchOverlay
+        visible
+        isLoading={false}
+        onSearch={() => undefined}
+      />
+    </div>
+  ),
+};
+
+export const PerformanceNoticeStory: Story = {
+  name: "PerformanceNotice",
+  render: () => (
+    <PerformanceNotice message="표시 성능을 위해 최대 1,000개 점포만 지도에 표시합니다. 지도를 확대하거나 필터를 조정해보세요." />
+  ),
+};
+
+export const DebouncedSearchInputStory: Story = {
+  name: "DebouncedSearchInput",
+  render: () => (
+    <DebouncedSearchInput
+      id="storybook-debounced-search"
+      label="키워드로 점포 검색"
+      value="커피"
+      debounceLabel="입력 후 잠시 멈추면 검색 조건이 자동 반영됩니다."
+      onChange={() => undefined}
+    />
+  ),
+};
+
+function VirtualizedStoreListDemo() {
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
+    data: storeRows,
+    columns: storeColumns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <div className="rounded-[8px] border border-slate-200 bg-white">
+      <VirtualizedStoreList
+        table={table}
+        columns={storeColumns}
+        isLoading={false}
+        isError={false}
+        onRetry={() => undefined}
+      />
+    </div>
+  );
+}

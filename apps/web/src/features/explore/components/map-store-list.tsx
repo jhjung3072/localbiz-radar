@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { ListChecks, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { StoreMapItem } from "@/features/map/types";
@@ -21,6 +23,23 @@ export function MapStoreList({
   onAddCandidate,
   onRetry,
 }: MapStoreListProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const selectedIndex = stores.findIndex((store) => store.id === selectedStoreId);
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const rowVirtualizer = useVirtualizer({
+    count: stores.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 112,
+    overscan: 6,
+  });
+  const virtualRows = rowVirtualizer.getVirtualItems();
+
+  useEffect(() => {
+    if (selectedIndex >= 0) {
+      rowVirtualizer.scrollToIndex(selectedIndex, { align: "center" });
+    }
+  }, [rowVirtualizer, selectedIndex]);
+
   return (
     <section
       aria-label="지도 점포 목록"
@@ -36,7 +55,7 @@ export function MapStoreList({
         </span>
       </div>
 
-      <div className="max-h-[320px] overflow-y-auto p-3">
+      <div ref={parentRef} className="max-h-[360px] overflow-y-auto p-3">
         {isLoading ? <MapStoreListLoading /> : null}
 
         {isError ? (
@@ -61,11 +80,25 @@ export function MapStoreList({
         ) : null}
 
         {!isLoading && !isError && stores.length > 0 ? (
-          <ul className="space-y-2">
-            {stores.map((store) => {
+          <ul
+            className="relative"
+            style={{ height: rowVirtualizer.getTotalSize() }}
+          >
+            {virtualRows.map((virtualRow) => {
+              const store = stores[virtualRow.index];
+              if (!store) {
+                return null;
+              }
               const selected = selectedStoreId === store.id;
               return (
-                <li key={store.id}>
+                <li
+                  key={store.id}
+                  className="absolute left-0 top-0 w-full pb-2"
+                  style={{
+                    height: virtualRow.size,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
                   <div
                     className={
                       selected
