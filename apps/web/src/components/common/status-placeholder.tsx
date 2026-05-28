@@ -25,8 +25,15 @@ export function StatusPlaceholder({
   description,
   type,
 }: StatusPlaceholderProps) {
+  const isError = type === "error";
+
   return (
-    <div className={cn("rounded-[8px] border p-4", typeClasses[type])}>
+    <div
+      className={cn("rounded-[8px] border p-4", typeClasses[type])}
+      role={isError ? "alert" : undefined}
+      aria-live={isError ? "assertive" : "polite"}
+      aria-busy={type === "loading" ? "true" : undefined}
+    >
       <div className="flex items-center gap-2 text-sm font-semibold">
         {iconMap[type]}
         <span>{title}</span>

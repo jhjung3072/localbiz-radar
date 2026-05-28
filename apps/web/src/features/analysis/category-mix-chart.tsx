@@ -23,6 +23,9 @@ export function CategoryMixChart({ data }: CategoryMixChartProps) {
 
   return (
     <div className="h-72 w-full" aria-label="카테고리 구성 비율 차트">
+      <p className="sr-only">
+        선택한 지역의 업종 구성 비율을 막대 차트로 표시합니다.
+      </p>
       {isClient ? (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

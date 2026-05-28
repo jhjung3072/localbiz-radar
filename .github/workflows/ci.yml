@@ -39,6 +39,9 @@ jobs:
       - name: Test web
         run: pnpm --filter web test:run
 
+      - name: Build Storybook
+        run: pnpm --filter web build-storybook
+
   api:
     name: API
     runs-on: ubuntu-latest

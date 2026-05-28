@@ -123,6 +123,9 @@ export function SyncLogTable({
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <caption className="sr-only">
+            데이터 동기화 이력과 처리 결과를 표시합니다.
+          </caption>
           <thead className="bg-slate-50 text-slate-600">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>

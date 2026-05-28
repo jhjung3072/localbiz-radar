@@ -30,7 +30,8 @@ export function SyncResultCard({ result }: SyncResultCardProps) {
     );
   }
 
-  const hasErrors = result.errors.length > 0;
+  const errors = result.errors ?? [];
+  const hasErrors = errors.length > 0;
 
   return (
     <section className="rounded-[8px] border border-slate-200 bg-white p-5 shadow-sm">
@@ -73,7 +74,7 @@ export function SyncResultCard({ result }: SyncResultCardProps) {
         <div className="mt-5 rounded-md border border-rose-100 bg-rose-50 p-3">
           <h3 className="text-sm font-semibold text-rose-800">실패 row 요약</h3>
           <ul className="mt-2 space-y-1 text-sm leading-6 text-rose-800">
-            {result.errors.map((error) => (
+            {errors.map((error) => (
               <li key={`${"pageNo" in error ? error.pageNo : 0}-${error.rowNumber}-${error.message}`}>
                 {"pageNo" in error ? `page ${error.pageNo} ` : null}
                 row {error.rowNumber}: {error.message}

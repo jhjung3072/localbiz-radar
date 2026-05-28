@@ -26,7 +26,7 @@ const navItems = [
 ];
 
 export function MainNav() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
 
   return (
     <nav aria-label="주요 메뉴" className="overflow-x-auto">

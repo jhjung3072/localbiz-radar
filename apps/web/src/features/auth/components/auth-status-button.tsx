@@ -12,7 +12,7 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 
 export function AuthStatusButton() {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);

@@ -34,7 +34,15 @@ export function ComparisonChart({
   return (
     <article className="rounded-[8px] border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold text-slate-950">지표 비교</h2>
-      <div className="mt-4 h-80 w-full" aria-label="A/B 지표 비교 막대 차트">
+      <p className="sr-only">
+        기준 지역과 비교 지역의 LocalBiz 점수, 경쟁 강도, 업종 다양성, 점포 밀도를
+        막대 차트로 비교합니다.
+      </p>
+      <div
+        className="mt-4 h-80 w-full"
+        role="img"
+        aria-label="A/B 지표 비교 막대 차트"
+      >
         {isClient ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ left: 0, right: 12, top: 12, bottom: 0 }}>

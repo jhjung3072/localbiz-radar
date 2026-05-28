@@ -6,6 +6,8 @@ node_modules/
 out/
 dist/
 coverage/
+storybook-static/
+apps/web/storybook-static/
 
 # Java / Gradle
 .gradle/

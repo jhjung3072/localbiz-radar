@@ -1,7 +1,7 @@
 import type { MasterRegion } from "@/features/master/types";
 
 const selectClassName =
-  "h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20 disabled:bg-slate-50 disabled:text-slate-400";
+  "h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20 disabled:bg-slate-100 disabled:text-slate-700 disabled:opacity-100";
 
 type RegionSelectGroupProps = {
   title: string;

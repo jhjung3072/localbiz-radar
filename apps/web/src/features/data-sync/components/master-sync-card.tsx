@@ -32,6 +32,8 @@ export function MasterSyncCard({
   onCategorySync,
   onRefreshStatus,
 }: MasterSyncCardProps) {
+  const resultErrors = result?.errors ?? [];
+
   return (
     <section className="rounded-[8px] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-start sm:justify-between">
@@ -97,9 +99,9 @@ export function MasterSyncCard({
             <ResultMetric label="update" value={result.updatedRows} />
             <ResultMetric label="실패" value={result.failedRows} />
           </div>
-          {result.errors.length > 0 ? (
+          {resultErrors.length > 0 ? (
             <ul className="mt-3 space-y-1 text-rose-700">
-              {result.errors.map((error, index) => (
+              {resultErrors.map((error, index) => (
                 <li key={`${error.scope}-${index}`}>
                   {error.scope}: {error.message}
                 </li>

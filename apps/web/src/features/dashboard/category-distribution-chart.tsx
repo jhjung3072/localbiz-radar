@@ -25,6 +25,10 @@ export function CategoryDistributionChart({
 
   return (
     <div className="h-80 w-full" aria-label="업종별 점포 수 막대 차트">
+      <p className="sr-only">
+        업종별 점포 수를 막대 차트로 표시합니다. 같은 데이터는 인기 업종 랭킹
+        목록에서도 확인할 수 있습니다.
+      </p>
       {isClient ? (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ left: 0, right: 12, top: 12, bottom: 0 }}>

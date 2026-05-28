@@ -346,6 +346,9 @@ export function StoreTable() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-[1040px] w-full border-collapse text-left text-sm">
+            <caption className="sr-only">
+              검색 조건에 맞는 점포 목록과 주소 정보를 표시합니다.
+            </caption>
             <thead className="bg-slate-50 text-slate-600">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
