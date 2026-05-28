@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -17,6 +17,7 @@ import {
 } from "@/features/stores/api/store-api";
 import { storeQueryKeys } from "@/features/stores/api/store-query-keys";
 import type { StoreListItem, StoreSearchParams } from "@/features/stores/types";
+import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 const columns: ColumnDef<StoreListItem>[] = [
   { accessorKey: "storeName", header: "상호명" },
@@ -114,6 +115,28 @@ export function StoreTable() {
   const visibleStart = totalElements > 0 ? page * size + 1 : 0;
   const visibleEnd = Math.min((page + 1) * size, totalElements);
   const isFilterLoading = categoriesQuery.isLoading || regionsQuery.isLoading;
+
+  useEffect(() => {
+    addSafeBreadcrumb("stores.search", "점포 목록 조회 조건 변경", {
+      hasKeyword: keyword.trim().length > 0,
+      keywordLength: keyword.trim().length,
+      hasRegionFilter: sido !== "all" || sigungu !== "all" || dong !== "all",
+      hasCategoryFilter:
+        categoryLargeCode !== "all" ||
+        categoryMediumCode !== "all" ||
+        categorySmallCode !== "all",
+      page,
+    });
+  }, [
+    categoryLargeCode,
+    categoryMediumCode,
+    categorySmallCode,
+    dong,
+    keyword,
+    page,
+    sido,
+    sigungu,
+  ]);
 
   function resetToFirstPage() {
     setPage(0);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, BadgePercent, GitCompare, Layers3, MapPinned, Trophy } from "lucide-react";
 import { MetricCard } from "@/components/common/metric-card";
@@ -20,6 +20,7 @@ import type {
 import { CategoryMixChart } from "@/features/analysis/category-mix-chart";
 import { getRegions, getStoreCategories } from "@/features/stores/api/store-api";
 import { storeQueryKeys } from "@/features/stores/api/store-query-keys";
+import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 const selectClassName =
   "h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/20 disabled:bg-slate-50 disabled:text-slate-400";
@@ -186,6 +187,23 @@ export default function AnalysisPage() {
     regionsQuery.isError ||
     categoriesQuery.isError;
   const isEmpty = !isLoading && !isError && (summaryQuery.data?.totalStores ?? 0) === 0;
+
+  useEffect(() => {
+    addSafeBreadcrumb("analysis.filter", "상권 분석 조건 변경", {
+      hasRegion: baseSido !== "all" || baseSigungu !== "all" || baseDong !== "all",
+      hasCategory:
+        categoryLargeCode !== "all" ||
+        categoryMediumCode !== "all" ||
+        categorySmallCode !== "all",
+    });
+  }, [
+    baseDong,
+    baseSido,
+    baseSigungu,
+    categoryLargeCode,
+    categoryMediumCode,
+    categorySmallCode,
+  ]);
 
   return (
     <div className="space-y-8">

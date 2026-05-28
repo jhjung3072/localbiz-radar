@@ -19,4 +19,5 @@ test("protects admin ops page and renders operations dashboard after login", asy
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "서비스 상태" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "데이터 품질" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sentry 상태" })).toBeVisible();
 });

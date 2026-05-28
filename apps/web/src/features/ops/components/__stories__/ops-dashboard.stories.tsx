@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs";
 import { DataQualityCard } from "@/features/ops/components/data-quality-card";
 import { OpsHealthStatus } from "@/features/ops/components/ops-health-status";
 import { OpsOverviewCards } from "@/features/ops/components/ops-overview-cards";
+import { SentryStatusCard } from "@/features/ops/components/sentry-status-card";
 import { SyncSummaryCard } from "@/features/ops/components/sync-summary-card";
 import type {
   OpsDataQuality,
@@ -101,4 +102,28 @@ export const SyncSummary: Story = {
 
 export const DataQuality: Story = {
   render: () => <DataQualityCard dataQuality={dataQuality} />,
+};
+
+export const SentryConfigured: Story = {
+  render: () => (
+    <SentryStatusCard
+      dsnConfigured
+      environment="local"
+      tracingEnabled
+      replayEnabled
+      org="localbiz"
+      project="localbiz-radar-web"
+    />
+  ),
+};
+
+export const SentryMissingDsn: Story = {
+  render: () => (
+    <SentryStatusCard
+      dsnConfigured={false}
+      environment="local"
+      tracingEnabled={false}
+      replayEnabled={false}
+    />
+  ),
 };

@@ -34,6 +34,7 @@ import type {
 import { getMasterCategories, getMasterRegions } from "@/features/master/api/master-api";
 import { masterQueryKeys } from "@/features/master/api/master-query-keys";
 import type { MasterCategory, MasterRegion } from "@/features/master/types";
+import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 export function ComparePageClient() {
   const router = useRouter();
@@ -117,6 +118,11 @@ export function ComparePageClient() {
   }, [compareQuery.data, submittedSelection]);
 
   function handleSubmit() {
+    addSafeBreadcrumb("compare.submit", "후보 지역 비교 실행", {
+      hasCategory: selection.large !== "all",
+      hasAdminDong:
+        selection.baseDong !== "all" || selection.targetDong !== "all",
+    });
     setSubmittedSelection(selection);
     router.replace(`${pathname}?${selectionToSearchParams(selection).toString()}`, {
       scroll: false,

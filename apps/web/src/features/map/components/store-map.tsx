@@ -29,6 +29,7 @@ import type {
   StoreMapItem,
   StoreNearbyItem,
 } from "@/features/map/types";
+import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 const DEFAULT_CENTER: MapCenter = {
   lat: 37.497952,
@@ -132,6 +133,10 @@ export function StoreMap() {
   }, []);
 
   function handleNearbySearch() {
+    addSafeBreadcrumb("map.nearby-search", "지도 반경 검색 실행", {
+      radius,
+      hasCategory: categoryLargeCode !== "all",
+    });
     setNearbyParams({
       lat: center.lat,
       lng: center.lng,

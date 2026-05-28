@@ -28,6 +28,7 @@ import {
 } from "@/features/master/api/master-api";
 import { masterQueryKeys } from "@/features/master/api/master-query-keys";
 import type { MasterSyncResult } from "@/features/master/types";
+import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 export default function DataSyncPage() {
   return (
@@ -160,7 +161,13 @@ function DataSyncContent() {
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <CsvUploadCard
           isUploading={importMutation.isPending}
-          onSubmit={(file, dryRun) => importMutation.mutate({ file, dryRun })}
+          onSubmit={(file, dryRun) => {
+            addSafeBreadcrumb("data-sync.csv", "CSV 동기화 실행", {
+              dryRun,
+              fileSize: file.size,
+            });
+            importMutation.mutate({ file, dryRun });
+          }}
         />
         <SyncGuideCard />
       </div>
@@ -170,8 +177,20 @@ function DataSyncContent() {
         isStatusLoading={openApiStatusQuery.isLoading}
         isRunning={isOpenApiRunning}
         isUpdatingSchedule={scheduleMutation.isPending}
-        onDryRun={(payload) => openApiDryRunMutation.mutate(payload)}
-        onSync={(payload) => openApiSyncMutation.mutate(payload)}
+        onDryRun={(payload) => {
+          addSafeBreadcrumb("data-sync.openapi", "OpenAPI dry-run 실행", {
+            operation: payload.operation,
+            maxPages: payload.maxPages,
+          });
+          openApiDryRunMutation.mutate(payload);
+        }}
+        onSync={(payload) => {
+          addSafeBreadcrumb("data-sync.openapi", "OpenAPI 실제 반영 실행", {
+            operation: payload.operation,
+            maxPages: payload.maxPages,
+          });
+          openApiSyncMutation.mutate(payload);
+        }}
         onRefreshStatus={() => openApiStatusQuery.refetch()}
         onToggleSchedule={(enabled) => scheduleMutation.mutate(enabled)}
         regions={regionsQuery.data ?? []}
@@ -185,7 +204,8 @@ function DataSyncContent() {
         isStatusLoading={masterStatusQuery.isLoading}
         isRegionRunning={regionMasterMutation.isPending}
         isCategoryRunning={categoryMasterMutation.isPending}
-        onRegionDryRun={() =>
+        onRegionDryRun={() => {
+          addSafeBreadcrumb("data-sync.master", "행정구역 마스터 dry-run 실행");
           regionMasterMutation.mutate({
             ctprvnCd: "11",
             includeSigungu: true,
@@ -194,9 +214,10 @@ function DataSyncContent() {
             dryRun: true,
             maxSigunguCount: 25,
             maxDongCountPerSigungu: 50,
-          })
-        }
-        onRegionSync={() =>
+          });
+        }}
+        onRegionSync={() => {
+          addSafeBreadcrumb("data-sync.master", "행정구역 마스터 실제 반영 실행");
           regionMasterMutation.mutate({
             ctprvnCd: "11",
             includeSigungu: true,
@@ -205,9 +226,10 @@ function DataSyncContent() {
             dryRun: false,
             maxSigunguCount: 25,
             maxDongCountPerSigungu: 50,
-          })
-        }
-        onCategoryDryRun={() =>
+          });
+        }}
+        onCategoryDryRun={() => {
+          addSafeBreadcrumb("data-sync.master", "업종 마스터 dry-run 실행");
           categoryMasterMutation.mutate({
             includeLarge: true,
             includeMedium: true,
@@ -216,9 +238,10 @@ function DataSyncContent() {
             maxLargeCount: 20,
             maxMediumCount: 200,
             maxSmallCountPerMedium: 100,
-          })
-        }
-        onCategorySync={() =>
+          });
+        }}
+        onCategorySync={() => {
+          addSafeBreadcrumb("data-sync.master", "업종 마스터 실제 반영 실행");
           categoryMasterMutation.mutate({
             includeLarge: true,
             includeMedium: true,
@@ -227,8 +250,8 @@ function DataSyncContent() {
             maxLargeCount: 20,
             maxMediumCount: 200,
             maxSmallCountPerMedium: 100,
-          })
-        }
+          });
+        }}
         onRefreshStatus={() => masterStatusQuery.refetch()}
       />
 

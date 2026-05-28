@@ -1,3 +1,6 @@
+import * as Sentry from "@sentry/nextjs";
+import { safePathForSentry } from "@/lib/sentry-scrubber";
+
 const DEFAULT_API_BASE_URL = "http://localhost:8080";
 
 export class ApiError extends Error {
@@ -28,6 +31,7 @@ export async function apiClient<T>(
 
   if (!response.ok) {
     const message = await readErrorMessage(response);
+    captureApiFailure(path, response.status, message);
     throw new ApiError(message, response.status);
   }
 
@@ -63,14 +67,19 @@ export async function apiFetch(
 async function fetchWithDefaults(path: string, init?: ApiRequestInit) {
   const requestInit = { ...(init ?? {}) };
   delete requestInit.skipAuthRefresh;
-  return fetch(`${getApiBaseUrl()}${path}`, {
-    ...requestInit,
-    credentials: "include",
-    headers: {
-      Accept: "application/json",
-      ...requestInit.headers,
-    },
-  });
+  try {
+    return await fetch(`${getApiBaseUrl()}${path}`, {
+      ...requestInit,
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        ...requestInit.headers,
+      },
+    });
+  } catch (error) {
+    captureNetworkFailure(path, error);
+    throw error;
+  }
 }
 
 function shouldRefresh(path: string) {
@@ -110,4 +119,37 @@ async function readErrorMessage(response: Response) {
   } catch {
     return "API 요청에 실패했습니다.";
   }
+}
+
+function captureApiFailure(path: string, status: number, message: string) {
+  if (status < 500) {
+    return;
+  }
+
+  const safePath = safePathForSentry(path);
+  Sentry.captureMessage("Spring Boot API request failed", {
+    level: "error",
+    tags: {
+      apiPath: safePath,
+      httpStatus: String(status),
+    },
+    extra: {
+      apiPath: safePath,
+      status,
+      message,
+    },
+  });
+}
+
+function captureNetworkFailure(path: string, error: unknown) {
+  const safePath = safePathForSentry(path);
+  Sentry.captureException(error, {
+    tags: {
+      apiPath: safePath,
+      failureType: "network",
+    },
+    extra: {
+      apiPath: safePath,
+    },
+  });
 }

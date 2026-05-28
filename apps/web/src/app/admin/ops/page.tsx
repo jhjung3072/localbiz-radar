@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
@@ -17,7 +17,9 @@ import { DataQualityCard } from "@/features/ops/components/data-quality-card";
 import { ObservabilityGuideCard } from "@/features/ops/components/observability-guide-card";
 import { OpsHealthStatus } from "@/features/ops/components/ops-health-status";
 import { OpsOverviewCards } from "@/features/ops/components/ops-overview-cards";
+import { SentryStatusCard } from "@/features/ops/components/sentry-status-card";
 import { SyncSummaryCard } from "@/features/ops/components/sync-summary-card";
+import { addSafeBreadcrumb, getSentryEnvironment } from "@/lib/sentry-utils";
 
 export default function AdminOpsPage() {
   return (
@@ -30,6 +32,10 @@ export default function AdminOpsPage() {
 }
 
 function AdminOpsContent() {
+  useEffect(() => {
+    addSafeBreadcrumb("admin.ops", "운영 대시보드 진입");
+  }, []);
+
   const overviewQuery = useQuery({
     queryKey: opsQueryKeys.overview(),
     queryFn: getOpsOverview,
@@ -97,7 +103,17 @@ function AdminOpsContent() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
         <SyncSummaryCard syncSummary={syncSummaryQuery.data} />
-        <ObservabilityGuideCard />
+        <div className="space-y-5">
+          <ObservabilityGuideCard />
+          <SentryStatusCard
+            dsnConfigured={Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN)}
+            environment={getSentryEnvironment() ?? "local"}
+            tracingEnabled={Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN)}
+            replayEnabled={Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN)}
+            org={process.env.NEXT_PUBLIC_SENTRY_ORG}
+            project={process.env.NEXT_PUBLIC_SENTRY_PROJECT}
+          />
+        </div>
       </div>
 
       <DataQualityCard dataQuality={dataQualityQuery.data} />
