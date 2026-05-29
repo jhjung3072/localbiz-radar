@@ -44,6 +44,7 @@ import {
   storeQueryKeys,
 } from "@/features/stores/api/store-query-keys";
 import { VirtualizedStoreList } from "@/features/stores/components/virtualized-store-list";
+import type { StoresBffData } from "@/features/bff/server/types";
 import type { StoreListItem, StoreSearchParams } from "@/features/stores/types";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
@@ -63,7 +64,11 @@ const baseColumns: ColumnDef<StoreListItem>[] = [
   },
 ];
 
-export function StoreTable() {
+type StoreTableProps = {
+  initialData?: StoresBffData | null;
+};
+
+export function StoreTable({ initialData }: StoreTableProps) {
   const { query, setQuery, replaceQuery, pathname } = useExploreUrlState();
   const [keywordInput, setKeywordInput] = useState(query.keyword);
   const keywordInputRef = useRef<HTMLInputElement>(null);
@@ -77,12 +82,14 @@ export function StoreTable() {
     queryFn: getStoreCategories,
     staleTime: 30 * 60_000,
     gcTime: 60 * 60_000,
+    initialData: initialData?.filters.categories,
   });
   const regionsQuery = useQuery({
     queryKey: storeQueryKeys.regions(),
     queryFn: getRegions,
     staleTime: 30 * 60_000,
     gcTime: 60 * 60_000,
+    initialData: initialData?.filters.regions,
   });
   const selectedSido = regionsQuery.data?.find(
     (region) => region.sidoCode === query.ctprvnCd,
@@ -126,11 +133,22 @@ export function StoreTable() {
     () => normalizeStoreSearchParams(storeParams),
     [storeParams],
   );
+  const initialStoresData = useMemo(() => {
+    if (!initialData) {
+      return undefined;
+    }
+
+    return JSON.stringify(normalizedStoreParams) ===
+      JSON.stringify(normalizeStoreSearchParams(initialData.requestParams))
+      ? initialData.stores
+      : undefined;
+  }, [initialData, normalizedStoreParams]);
   const storesQuery = useQuery({
     queryKey: storeQueryKeys.list(normalizedStoreParams),
     queryFn: () => getStores(normalizedStoreParams),
     placeholderData: keepPreviousData,
     staleTime: 30_000,
+    initialData: initialStoresData,
   });
 
   const selectedLargeCategory = categoriesQuery.data?.find(

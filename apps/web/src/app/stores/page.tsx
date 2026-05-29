@@ -1,7 +1,17 @@
 import { Suspense } from "react";
 import { StoreTable } from "@/features/stores/store-table";
+import { getStoresBootstrap } from "@/features/explore/server/get-stores-bootstrap";
 
-export default function StoresPage() {
+type StoresPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function StoresPage({ searchParams }: StoresPageProps) {
+  const params = await searchParams;
+  const initialData = await getStoresBootstrap(toUrlSearchParams(params)).catch(
+    () => null,
+  );
+
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-3">
@@ -21,8 +31,26 @@ export default function StoresPage() {
           <div className="h-96 animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
         }
       >
-        <StoreTable />
+        <StoreTable initialData={initialData} />
       </Suspense>
     </div>
   );
+}
+
+function toUrlSearchParams(
+  params?: Record<string, string | string[] | undefined>,
+) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params ?? {}).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => searchParams.append(key, item));
+      return;
+    }
+    if (value !== undefined) {
+      searchParams.set(key, value);
+    }
+  });
+
+  return searchParams;
 }

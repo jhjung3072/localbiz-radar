@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import { StoreMap } from "@/features/map/components/store-map";
+import { getExploreBootstrap } from "@/features/explore/server/get-explore-bootstrap";
 
-export default function MapPage() {
+export default async function MapPage() {
+  const initialData = await getExploreBootstrap().catch(() => null);
+
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-3">
@@ -22,7 +25,7 @@ export default function MapPage() {
           <div className="h-96 animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
         }
       >
-        <StoreMap />
+        <StoreMap initialData={initialData} />
       </Suspense>
     </div>
   );

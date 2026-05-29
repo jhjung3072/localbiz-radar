@@ -48,6 +48,7 @@ import type {
   StoreMapItem,
   StoreNearbyItem,
 } from "@/features/map/types";
+import type { ExploreBootstrapData } from "@/features/bff/server/types";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 const DEFAULT_CENTER: MapCenter = {
@@ -57,7 +58,11 @@ const DEFAULT_CENTER: MapCenter = {
 const MAP_LIMIT = 1000;
 const NEARBY_LIMIT = 100;
 
-export function StoreMap() {
+type StoreMapProps = {
+  initialData?: ExploreBootstrapData | null;
+};
+
+export function StoreMap({ initialData }: StoreMapProps) {
   const { query, setQuery } = useExploreUrlState();
   const initialCenter = useMemo(
     () => ({
@@ -84,12 +89,14 @@ export function StoreMap() {
     queryFn: getStoreCategories,
     staleTime: 30 * 60_000,
     gcTime: 60 * 60_000,
+    initialData: initialData?.legacyCategories,
   });
   const regionsQuery = useQuery({
     queryKey: storeQueryKeys.regions(),
     queryFn: getRegions,
     staleTime: 30 * 60_000,
     gcTime: 60 * 60_000,
+    initialData: initialData?.legacyRegions,
   });
   const selectedSido = regionsQuery.data?.find(
     (region) => region.sidoCode === query.ctprvnCd,

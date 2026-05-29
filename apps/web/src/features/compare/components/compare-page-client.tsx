@@ -28,6 +28,7 @@ import {
 import { CandidateTray } from "@/features/explore/components/candidate-tray";
 import { useCandidateTray } from "@/features/explore/hooks/use-candidate-tray";
 import { createCandidateRegion } from "@/features/explore/lib/candidate-storage";
+import type { CompareBootstrapData } from "@/features/bff/server/types";
 import type {
   CompareRegionsPayload,
   CompareSelection,
@@ -39,7 +40,11 @@ import { masterQueryKeys } from "@/features/master/api/master-query-keys";
 import type { MasterCategory, MasterRegion } from "@/features/master/types";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
-export function ComparePageClient() {
+type ComparePageClientProps = {
+  initialData?: CompareBootstrapData | null;
+};
+
+export function ComparePageClient({ initialData }: ComparePageClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -56,10 +61,12 @@ export function ComparePageClient() {
   const regionsQuery = useQuery({
     queryKey: masterQueryKeys.regions(),
     queryFn: getMasterRegions,
+    initialData: initialData?.regions,
   });
   const categoriesQuery = useQuery({
     queryKey: masterQueryKeys.categories(),
     queryFn: getMasterCategories,
+    initialData: initialData?.categories,
   });
 
   const comparePayload = useMemo(
@@ -97,6 +104,11 @@ export function ComparePageClient() {
     queryKey: compareQueryKeys.ranking(rankingParams),
     queryFn: () => getRegionRanking(rankingParams),
     enabled: hasMasterData,
+    initialData:
+      initialData &&
+      JSON.stringify(rankingParams) === JSON.stringify(initialData.rankingParams)
+        ? initialData.regionRanking
+        : undefined,
   });
 
   useEffect(() => {
