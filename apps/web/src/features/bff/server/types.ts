@@ -28,6 +28,7 @@ import type {
   OpsOverview,
   OpsSyncSummary,
 } from "@/features/ops/types";
+import type { CompareReportData } from "@/features/reports/types";
 
 export type DashboardBffData = {
   summary: AnalysisSummary;
@@ -84,3 +85,5 @@ export type AdminDataSyncBffData = {
 export type ComparePreviewBffData = {
   result: CompareRegionsResult | null;
 };
+
+export type CompareReportBffData = CompareReportData;

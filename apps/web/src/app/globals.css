@@ -128,3 +128,31 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  @page {
+    margin: 14mm;
+    size: A4;
+  }
+
+  body {
+    background: white !important;
+    color: #0f172a !important;
+  }
+
+  nav,
+  .report-actions {
+    display: none !important;
+  }
+
+  .compare-report {
+    max-width: none !important;
+  }
+
+  .compare-report section,
+  .compare-report article,
+  .compare-report header {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

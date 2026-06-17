@@ -29,11 +29,13 @@ export function bffError(error: unknown) {
           message:
             error.status === 401
               ? "로그인이 필요합니다."
+              : error.status === 400
+                ? error.message
               : "데이터를 불러오지 못했습니다.",
           status: error.status,
         },
       },
-      { status: error.status === 401 ? 401 : 502 },
+      { status: error.status >= 400 && error.status < 500 ? error.status : 502 },
     );
   }
 

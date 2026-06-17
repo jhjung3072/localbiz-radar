@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { compareRegions, getRegionRanking } from "@/features/compare/api/compare-api";
 import { compareQueryKeys } from "@/features/compare/api/compare-query-keys";
 import { CompareConditionForm } from "@/features/compare/components/compare-condition-form";
@@ -38,6 +41,10 @@ import type {
 import { getMasterCategories, getMasterRegions } from "@/features/master/api/master-api";
 import { masterQueryKeys } from "@/features/master/api/master-query-keys";
 import type { MasterCategory, MasterRegion } from "@/features/master/types";
+import {
+  buildCompareReportUrl,
+  buildReportQueryFromSelection,
+} from "@/features/reports/lib/report-url";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 type ComparePageClientProps = {
@@ -90,6 +97,14 @@ export function ComparePageClient({ initialData }: ComparePageClientProps) {
     }),
     [submittedSelection],
   );
+  const reportUrl = useMemo(() => {
+    const reportQuery = buildReportQueryFromSelection(
+      submittedSelection,
+      regionsQuery.data ?? [],
+      categoriesQuery.data ?? [],
+    );
+    return reportQuery ? buildCompareReportUrl(reportQuery) : null;
+  }, [categoriesQuery.data, regionsQuery.data, submittedSelection]);
 
   const isMasterLoading = regionsQuery.isLoading || categoriesQuery.isLoading;
   const hasMasterData =
@@ -233,6 +248,35 @@ export function ComparePageClient({ initialData }: ComparePageClientProps) {
       {compareQuery.data ? (
         <>
           <WinnerInsightCard result={compareQuery.data} />
+          {reportUrl ? (
+            <section className="flex flex-col gap-3 rounded-[8px] border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-950">
+                  공유 가능한 리포트
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  현재 비교 조건을 URL만으로 다시 열 수 있는 리포트 페이지로
+                  확인합니다.
+                </p>
+              </div>
+              <Button asChild>
+                <Link
+                  href={reportUrl}
+                  onClick={() =>
+                    addSafeBreadcrumb("compare.report", "리포트로 보기 클릭", {
+                      hasCategory: submittedSelection.large !== "all",
+                      hasAdminDong:
+                        submittedSelection.baseDong !== "all" ||
+                        submittedSelection.targetDong !== "all",
+                    })
+                  }
+                >
+                  <FileText className="size-4" aria-hidden="true" />
+                  리포트로 보기
+                </Link>
+              </Button>
+            </section>
+          ) : null}
           <ComparisonSummaryCards
             base={compareQuery.data.base}
             target={compareQuery.data.target}
