@@ -42,7 +42,13 @@ export function VirtualizedStoreList({
       : 0;
 
   return (
-    <div ref={parentRef} className="max-h-[560px] overflow-auto">
+    <div
+      ref={parentRef}
+      tabIndex={0}
+      role="region"
+      aria-label="점포 목록 스크롤 영역"
+      className="max-h-[560px] overflow-auto focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/30"
+    >
       <table className="min-w-[1040px] w-full border-collapse text-left text-sm">
         <caption className="sr-only">
           점포 목록. 검색 조건에 맞는 점포 목록과 주소 정보를 표시합니다. 대량 결과에서는 보이는 행만 렌더링합니다.

@@ -53,7 +53,7 @@ export function NearbySearchPanel({
   return (
     <section
       aria-label="주변 점포"
-      className="rounded-[8px] border border-slate-200 bg-white shadow-sm"
+      className="min-h-[430px] rounded-[8px] border border-slate-200 bg-white shadow-sm"
     >
       <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
         <div>
@@ -73,7 +73,13 @@ export function NearbySearchPanel({
         ) : null}
       </div>
 
-      <div ref={parentRef} className="max-h-[360px] overflow-y-auto p-3">
+      <div
+        ref={parentRef}
+        tabIndex={0}
+        role="region"
+        aria-label="주변 점포 목록 스크롤 영역"
+        className="h-[360px] overflow-y-auto p-3 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-amber-500/30"
+      >
         {isLoading ? <NearbyLoading /> : null}
 
         {isError ? (

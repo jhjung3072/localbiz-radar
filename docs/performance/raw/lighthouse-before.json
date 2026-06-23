@@ -1,0 +1,368 @@
+{
+  "status": "measured",
+  "generatedAt": "2026-06-17T04:49:53.639Z",
+  "source": "apps/web/scripts/performance/parse-lighthouse-results.mjs",
+  "lhciDir": "/Users/jeongjaeho/projects/localbiz-radar/docs/performance/raw/lhci-current",
+  "routes": [
+    {
+      "route": "/",
+      "runCount": 5,
+      "median": {
+        "performanceScore": 100,
+        "lcpMs": 737.2886000000001,
+        "tbtMs": 0,
+        "cls": 0,
+        "speedIndexMs": 208.4386,
+        "jsTransferSizeBytes": 561242,
+        "requestCount": 50
+      },
+      "runs": [
+        {
+          "performanceScore": 100,
+          "lcpMs": 701.29035,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 209.5269,
+          "jsTransferSizeBytes": 561228,
+          "requestCount": 50
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 737.2886000000001,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 208.19240000000002,
+          "jsTransferSizeBytes": 561225,
+          "requestCount": 50
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 735.7607,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 207.17380000000003,
+          "jsTransferSizeBytes": 561246,
+          "requestCount": 50
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 737.6578999999999,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 208.4386,
+          "jsTransferSizeBytes": 561242,
+          "requestCount": 50
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 737.75825,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 208.50549999999998,
+          "jsTransferSizeBytes": 561318,
+          "requestCount": 51
+        }
+      ]
+    },
+    {
+      "route": "/admin/login",
+      "runCount": 5,
+      "median": {
+        "performanceScore": 99,
+        "lcpMs": 898.9148,
+        "tbtMs": 0,
+        "cls": 0,
+        "speedIndexMs": 296.87266006072446,
+        "jsTransferSizeBytes": 558163,
+        "requestCount": 50
+      },
+      "runs": [
+        {
+          "performanceScore": 99,
+          "lcpMs": 862.6709,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 296.87266006072446,
+          "jsTransferSizeBytes": 558240,
+          "requestCount": 51
+        },
+        {
+          "performanceScore": 99,
+          "lcpMs": 900.754,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 299.1499700763309,
+          "jsTransferSizeBytes": 558145,
+          "requestCount": 50
+        },
+        {
+          "performanceScore": 99,
+          "lcpMs": 849.8995,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 310.8330181118976,
+          "jsTransferSizeBytes": 558240,
+          "requestCount": 51
+        },
+        {
+          "performanceScore": 99,
+          "lcpMs": 899.7788,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 294.2658549623983,
+          "jsTransferSizeBytes": 558144,
+          "requestCount": 50
+        },
+        {
+          "performanceScore": 99,
+          "lcpMs": 898.9148,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 295.775341073538,
+          "jsTransferSizeBytes": 558163,
+          "requestCount": 50
+        }
+      ]
+    },
+    {
+      "route": "/compare",
+      "runCount": 5,
+      "median": {
+        "performanceScore": 99,
+        "lcpMs": 856.8836,
+        "tbtMs": 0,
+        "cls": 0,
+        "speedIndexMs": 245.92239999999998,
+        "jsTransferSizeBytes": 711672,
+        "requestCount": 59
+      },
+      "runs": [
+        {
+          "performanceScore": 99,
+          "lcpMs": 862.3774999999999,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 249.58499999999998,
+          "jsTransferSizeBytes": 711835,
+          "requestCount": 60
+        },
+        {
+          "performanceScore": 97,
+          "lcpMs": 1276.916,
+          "tbtMs": 0,
+          "cls": 0.00539683989323649,
+          "speedIndexMs": 453.34803587966076,
+          "jsTransferSizeBytes": 711628,
+          "requestCount": 59
+        },
+        {
+          "performanceScore": 99,
+          "lcpMs": 855.36125,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 244.90750000000003,
+          "jsTransferSizeBytes": 711661,
+          "requestCount": 59
+        },
+        {
+          "performanceScore": 99,
+          "lcpMs": 854.69525,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 244.4635,
+          "jsTransferSizeBytes": 711672,
+          "requestCount": 59
+        },
+        {
+          "performanceScore": 99,
+          "lcpMs": 856.8836,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 245.92239999999998,
+          "jsTransferSizeBytes": 711762,
+          "requestCount": 60
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "runCount": 5,
+      "median": {
+        "performanceScore": 100,
+        "lcpMs": 816.75135,
+        "tbtMs": 0,
+        "cls": 0,
+        "speedIndexMs": 428.00306114800094,
+        "jsTransferSizeBytes": 568160,
+        "requestCount": 51
+      },
+      "runs": [
+        {
+          "performanceScore": 100,
+          "lcpMs": 821.1514999999999,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 490.2961533832014,
+          "jsTransferSizeBytes": 568310,
+          "requestCount": 52
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 817.8569,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 427.22034306093286,
+          "jsTransferSizeBytes": 568345,
+          "requestCount": 52
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 813.9277999999999,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 428.00306114800094,
+          "jsTransferSizeBytes": 568160,
+          "requestCount": 51
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 816.75135,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 428.73038441231773,
+          "jsTransferSizeBytes": 568157,
+          "requestCount": 51
+        },
+        {
+          "performanceScore": 100,
+          "lcpMs": 813.01945,
+          "tbtMs": 0,
+          "cls": 0,
+          "speedIndexMs": 427.00228720863754,
+          "jsTransferSizeBytes": 568153,
+          "requestCount": 51
+        }
+      ]
+    },
+    {
+      "route": "/map",
+      "runCount": 5,
+      "median": {
+        "performanceScore": 94,
+        "lcpMs": 857.447,
+        "tbtMs": 0,
+        "cls": 0.1388117781293584,
+        "speedIndexMs": 282.25097890830136,
+        "jsTransferSizeBytes": 685712,
+        "requestCount": 62
+      },
+      "runs": [
+        {
+          "performanceScore": 91,
+          "lcpMs": 1238.5479999999998,
+          "tbtMs": 0,
+          "cls": 0.1442126292648175,
+          "speedIndexMs": 339.70493234620886,
+          "jsTransferSizeBytes": 685564,
+          "requestCount": 61
+        },
+        {
+          "performanceScore": 94,
+          "lcpMs": 859.0400000000001,
+          "tbtMs": 0,
+          "cls": 0.1388117781293584,
+          "speedIndexMs": 286.0436024099986,
+          "jsTransferSizeBytes": 685712,
+          "requestCount": 62
+        },
+        {
+          "performanceScore": 94,
+          "lcpMs": 856.442,
+          "tbtMs": 0,
+          "cls": 0.1388117781293584,
+          "speedIndexMs": 270.14070923351346,
+          "jsTransferSizeBytes": 685629,
+          "requestCount": 61
+        },
+        {
+          "performanceScore": 94,
+          "lcpMs": 857.447,
+          "tbtMs": 0,
+          "cls": 0.1442126292648175,
+          "speedIndexMs": 282.25097890830136,
+          "jsTransferSizeBytes": 685715,
+          "requestCount": 62
+        },
+        {
+          "performanceScore": 94,
+          "lcpMs": 856.4830000000001,
+          "tbtMs": 0,
+          "cls": 0.1388117781293584,
+          "speedIndexMs": 277.1785311651121,
+          "jsTransferSizeBytes": 685713,
+          "requestCount": 62
+        }
+      ]
+    },
+    {
+      "route": "/stores",
+      "runCount": 5,
+      "median": {
+        "performanceScore": 97,
+        "lcpMs": 1199.6056,
+        "tbtMs": 0,
+        "cls": 0.04354183495827442,
+        "speedIndexMs": 399.94094973231256,
+        "jsTransferSizeBytes": 660658,
+        "requestCount": 65
+      },
+      "runs": [
+        {
+          "performanceScore": 97,
+          "lcpMs": 1195.9484000000002,
+          "tbtMs": 0,
+          "cls": 0.04354183495827442,
+          "speedIndexMs": 361.2846535149676,
+          "jsTransferSizeBytes": 660738,
+          "requestCount": 65
+        },
+        {
+          "performanceScore": 97,
+          "lcpMs": 1216.0436,
+          "tbtMs": 0,
+          "cls": 0.04354183495827442,
+          "speedIndexMs": 566.0756749639803,
+          "jsTransferSizeBytes": 660658,
+          "requestCount": 66
+        },
+        {
+          "performanceScore": 97,
+          "lcpMs": 1205.0668,
+          "tbtMs": 0,
+          "cls": 0.04354183495827442,
+          "speedIndexMs": 566.9421800260516,
+          "jsTransferSizeBytes": 660704,
+          "requestCount": 65
+        },
+        {
+          "performanceScore": 97,
+          "lcpMs": 1199.498,
+          "tbtMs": 0,
+          "cls": 0.04354183495827442,
+          "speedIndexMs": 399.94094973231256,
+          "jsTransferSizeBytes": 660595,
+          "requestCount": 65
+        },
+        {
+          "performanceScore": 97,
+          "lcpMs": 1199.6056,
+          "tbtMs": 0,
+          "cls": 0.04354183495827442,
+          "speedIndexMs": 398.8443691783605,
+          "jsTransferSizeBytes": 660627,
+          "requestCount": 65
+        }
+      ]
+    }
+  ]
+}

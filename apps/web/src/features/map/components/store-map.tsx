@@ -591,10 +591,15 @@ function KakaoStoreMap({
 
   if (mapLoadError) {
     return (
-      <MapErrorState
-        title="Kakao Maps를 불러오지 못했습니다"
-        description="JavaScript Key와 Kakao Developers의 JavaScript SDK 도메인 등록 상태를 확인해 주세요."
-      />
+      <section
+        aria-label="점포 분포 지도"
+        className="flex min-h-[520px] items-center rounded-[8px] border border-slate-200 bg-slate-100 p-4 shadow-sm"
+      >
+        <MapErrorState
+          title="Kakao Maps를 불러오지 못했습니다"
+          description="JavaScript Key와 Kakao Developers의 JavaScript SDK 도메인 등록 상태를 확인해 주세요."
+        />
+      </section>
     );
   }
 

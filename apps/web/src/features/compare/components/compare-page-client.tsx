@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -11,8 +12,6 @@ import { compareQueryKeys } from "@/features/compare/api/compare-query-keys";
 import { CompareConditionForm } from "@/features/compare/components/compare-condition-form";
 import { CompareEmptyState } from "@/features/compare/components/compare-empty-state";
 import { CompareErrorState } from "@/features/compare/components/compare-error-state";
-import { ComparisonChart } from "@/features/compare/components/comparison-chart";
-import { ComparisonRadarChart } from "@/features/compare/components/comparison-radar-chart";
 import { ComparisonSummaryCards } from "@/features/compare/components/comparison-summary-cards";
 import { RecentComparisons } from "@/features/compare/components/recent-comparisons";
 import { RegionRankingTable } from "@/features/compare/components/region-ranking-table";
@@ -46,6 +45,28 @@ import {
   buildReportQueryFromSelection,
 } from "@/features/reports/lib/report-url";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
+
+const ComparisonChart = dynamic(
+  () =>
+    import("@/features/compare/components/comparison-chart").then(
+      (mod) => mod.ComparisonChart,
+    ),
+  {
+    ssr: false,
+    loading: () => <ChartCardFallback title="지표 비교" />,
+  },
+);
+
+const ComparisonRadarChart = dynamic(
+  () =>
+    import("@/features/compare/components/comparison-radar-chart").then(
+      (mod) => mod.ComparisonRadarChart,
+    ),
+  {
+    ssr: false,
+    loading: () => <ChartCardFallback title="균형 비교" />,
+  },
+);
 
 type ComparePageClientProps = {
   initialData?: CompareBootstrapData | null;
@@ -425,5 +446,14 @@ function CompareSkeleton() {
         />
       ))}
     </div>
+  );
+}
+
+function ChartCardFallback({ title }: { title: string }) {
+  return (
+    <article className="rounded-[8px] border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
+      <div className="mt-4 h-80 w-full animate-pulse rounded-md bg-slate-50" />
+    </article>
   );
 }

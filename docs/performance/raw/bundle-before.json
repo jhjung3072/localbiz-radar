@@ -1,0 +1,137 @@
+{
+  "status": "measured",
+  "generatedAt": "2026-06-17T04:50:13.259Z",
+  "source": "apps/web/scripts/performance/summarize-bundle.mjs",
+  "gitRef": "03cb87a",
+  "sharedBytes": 142476,
+  "routeSizes": {
+    "/dashboard": {
+      "files": [
+        "static/chunks/13wm_k7b12r7f.js",
+        "static/chunks/0.7x6yl_rcs4e.js",
+        "static/chunks/0qu311.4m2i8a.js",
+        "static/chunks/0~gu8vd_4ocnl.js",
+        "static/chunks/11noyctw4jcix.js",
+        "static/chunks/0_3hx~rfo8f1l.js",
+        "static/chunks/0davnvk3iq7mu.js"
+      ],
+      "bytes": 516236
+    },
+    "/stores": {
+      "files": [
+        "static/chunks/13wm_k7b12r7f.js",
+        "static/chunks/0.7x6yl_rcs4e.js",
+        "static/chunks/0qu311.4m2i8a.js",
+        "static/chunks/0~gu8vd_4ocnl.js",
+        "static/chunks/11noyctw4jcix.js",
+        "static/chunks/0t30w9l0qqysg.js",
+        "static/chunks/0zm-hxgqw3cgj.js",
+        "static/chunks/170q2r5unw~0..js"
+      ],
+      "bytes": 534802
+    },
+    "/map": {
+      "files": [
+        "static/chunks/13wm_k7b12r7f.js",
+        "static/chunks/0.7x6yl_rcs4e.js",
+        "static/chunks/0qu311.4m2i8a.js",
+        "static/chunks/0~gu8vd_4ocnl.js",
+        "static/chunks/11noyctw4jcix.js",
+        "static/chunks/0ox8qj5j1a4mo.js",
+        "static/chunks/0zm-hxgqw3cgj.js",
+        "static/chunks/0mnu.6j4fv7lf.js"
+      ],
+      "bytes": 506765
+    },
+    "/compare": {
+      "files": [
+        "static/chunks/13wm_k7b12r7f.js",
+        "static/chunks/0.7x6yl_rcs4e.js",
+        "static/chunks/0qu311.4m2i8a.js",
+        "static/chunks/0~gu8vd_4ocnl.js",
+        "static/chunks/11noyctw4jcix.js",
+        "static/chunks/188f7vrsoymzi.js",
+        "static/chunks/0m8hgenofxe66.js",
+        "static/chunks/0y~nuxokn4ra2.js"
+      ],
+      "bytes": 586642
+    },
+    "/reports/compare": {
+      "files": [
+        "static/chunks/13wm_k7b12r7f.js",
+        "static/chunks/0.7x6yl_rcs4e.js",
+        "static/chunks/0qu311.4m2i8a.js",
+        "static/chunks/0~gu8vd_4ocnl.js",
+        "static/chunks/0f-eai5v5qfv6.js",
+        "static/chunks/11noyctw4jcix.js",
+        "static/chunks/09nlqqq.e3a0z.js"
+      ],
+      "bytes": 165395
+    }
+  },
+  "topChunks": [
+    {
+      "file": ".next/static/chunks/0k6ycdys_ig8d.js",
+      "bytes": 592883
+    },
+    {
+      "file": ".next/static/chunks/0davnvk3iq7mu.js",
+      "bytes": 360975
+    },
+    {
+      "file": ".next/static/chunks/0m8hgenofxe66.js",
+      "bytes": 360975
+    },
+    {
+      "file": ".next/static/chunks/0zm-hxgqw3cgj.js",
+      "bytes": 289647
+    },
+    {
+      "file": ".next/static/chunks/0soce0wl9j093.js",
+      "bytes": 141551
+    },
+    {
+      "file": ".next/static/chunks/03~yq9q893hmn.js",
+      "bytes": 112594
+    },
+    {
+      "file": ".next/static/chunks/0y~nuxokn4ra2.js",
+      "bytes": 59156
+    },
+    {
+      "file": ".next/static/chunks/0krv1j6fzcx.s.js",
+      "bytes": 58797
+    },
+    {
+      "file": ".next/static/chunks/0t30w9l0qqysg.js",
+      "bytes": 52948
+    },
+    {
+      "file": ".next/static/chunks/0~gu8vd_4ocnl.js",
+      "bytes": 52272
+    },
+    {
+      "file": ".next/static/chunks/170q2r5unw~0..js",
+      "bytes": 49731
+    },
+    {
+      "file": ".next/static/chunks/133q32tc8x4x_.js",
+      "bytes": 44922
+    },
+    {
+      "file": ".next/static/chunks/0mnu.6j4fv7lf.js",
+      "bytes": 42484
+    },
+    {
+      "file": ".next/static/chunks/0u6-2ikdmz-7g.js",
+      "bytes": 35357
+    },
+    {
+      "file": ".next/static/chunks/0yistf971mmih.js",
+      "bytes": 33118
+    }
+  ],
+  "analyzerOutput": [
+    "apps/web/.next/diagnostics/analyze"
+  ]
+}

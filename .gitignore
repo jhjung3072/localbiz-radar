@@ -17,6 +17,26 @@ apps/api/build/
 # test
 test-results/
 playwright-report/
+.perf-worktrees/
+.lighthouseci/
+apps/web/.lighthouseci/
+docs/performance/raw/lhci-current/
+docs/performance.zip
+docs/codex/
+docs/performance/*.md
+!docs/performance/frontend-performance-summary.md
+docs/performance/raw/*
+!docs/performance/raw/bff-before.json
+!docs/performance/raw/bff-after.json
+!docs/performance/raw/large-list-current.json
+!docs/performance/raw/bundle-before.json
+!docs/performance/raw/bundle-after.json
+!docs/performance/raw/lighthouse-before.json
+!docs/performance/raw/lighthouse-after.json
+!docs/performance/raw/stores-search-before.json
+!docs/performance/raw/stores-search-after.json
+!docs/performance/raw/a11y-before.json
+!docs/performance/raw/a11y-after.json
 
 # env
 .env

@@ -10,6 +10,13 @@
     "storybook:web": "pnpm --filter web storybook",
     "build-storybook:web": "pnpm --filter web build-storybook",
     "e2e:web": "pnpm --filter web e2e",
+    "perf:measure": "bash scripts/performance/measure-all.sh",
+    "perf:cleanup": "bash scripts/performance/cleanup-worktrees.sh",
+    "perf:lhci": "bash scripts/performance/measure-current-lighthouse.sh",
+    "perf:bundle": "bash scripts/performance/measure-bundle.sh",
+    "perf:a11y": "bash scripts/performance/measure-a11y.sh",
+    "perf:stores-search": "bash scripts/performance/measure-stores-search.sh",
+    "perf:large-list": "bash scripts/performance/measure-large-list.sh",
     "dev:api": "set -a; [ ! -f .env ] || . ./.env; set +a; cd apps/api && ./gradlew bootRun",
     "test:api": "cd apps/api && ./gradlew test",
     "ci": "pnpm lint:web && pnpm build:web && pnpm test:web && pnpm build-storybook:web && cd apps/api && ./gradlew test"

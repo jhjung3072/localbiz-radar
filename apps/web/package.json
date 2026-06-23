@@ -12,6 +12,10 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "e2e": "playwright test",
+    "e2e:perf": "NEXT_PUBLIC_ENABLE_PERF_LAB=true playwright test e2e/perf-large-list.spec.ts",
+    "e2e:a11y": "PERF_A11Y_REPORT=true playwright test e2e/a11y-performance-report.spec.ts",
+    "lhci": "lhci collect --config=./lighthouserc.cjs && lhci upload --config=./lighthouserc.cjs --target=filesystem",
+    "analyze": "ANALYZE=true next build",
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed"
   },
@@ -41,6 +45,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
+    "@lhci/cli": "^0.15.1",
+    "@next/bundle-analyzer": "^16.2.9",
     "@playwright/test": "^1.60.0",
     "@storybook/addon-a11y": "^10.4.1",
     "@storybook/nextjs": "^10.4.1",

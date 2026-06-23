@@ -21,12 +21,29 @@ export default async function MapPage() {
       </section>
 
       <Suspense
-        fallback={
-          <div className="h-96 animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
-        }
+        fallback={<MapPageSkeleton />}
       >
         <StoreMap initialData={initialData} />
       </Suspense>
+    </div>
+  );
+}
+
+function MapPageSkeleton() {
+  return (
+    <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="space-y-4">
+        <div className="h-[620px] animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
+        <div className="h-11 animate-pulse rounded-md border border-slate-200 bg-slate-100" />
+        <div className="h-44 animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
+      </div>
+      <div className="space-y-4">
+        <div className="h-[520px] animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="h-[430px] animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
+          <div className="h-[430px] animate-pulse rounded-[8px] border border-slate-200 bg-slate-100" />
+        </div>
+      </div>
     </div>
   );
 }

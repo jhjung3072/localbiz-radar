@@ -67,7 +67,7 @@ localbiz:
     max-error-summary-count: "${LOCALBIZ_STORE_SYNC_MAX_ERROR_SUMMARY_COUNT:20}"
   store-openapi:
     base-url: "${STORE_OPENAPI_BASE_URL:https://apis.data.go.kr/B553077/api/open/sdsc2}"
-    service-key: "KJwtczqNlM0bDybWKLhjyguVK7fFybyXqoG6FeTKoOh/kegfjSyckG3sPxMPXFXdzEluPatAv756yhcy3rMDGA=="
+    service-key: "${STORE_OPENAPI_SERVICE_KEY:}"
     default-type: "xml"
     enabled: "${STORE_OPENAPI_ENABLED:false}"
     scheduler-enabled: "${STORE_OPENAPI_SCHEDULER_ENABLED:false}"

@@ -43,7 +43,7 @@ export function MapStoreList({
   return (
     <section
       aria-label="지도 점포 목록"
-      className="rounded-[8px] border border-slate-200 bg-white shadow-sm"
+      className="min-h-[430px] rounded-[8px] border border-slate-200 bg-white shadow-sm"
     >
       <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
@@ -55,7 +55,13 @@ export function MapStoreList({
         </span>
       </div>
 
-      <div ref={parentRef} className="max-h-[360px] overflow-y-auto p-3">
+      <div
+        ref={parentRef}
+        tabIndex={0}
+        role="region"
+        aria-label="지도 점포 목록 스크롤 영역"
+        className="h-[360px] overflow-y-auto p-3 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/30"
+      >
         {isLoading ? <MapStoreListLoading /> : null}
 
         {isError ? (

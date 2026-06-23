@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ListOrdered, MapPinned, Store, Tags, TrendingUp } from "lucide-react";
@@ -12,8 +13,18 @@ import {
 import { analysisQueryKeys } from "@/features/analysis/api/analysis-query-keys";
 import type { CategoryDistributionItem } from "@/features/analysis/types";
 import type { DashboardBffData } from "@/features/bff/server/types";
-import { CategoryDistributionChart } from "@/features/dashboard/category-distribution-chart";
 import { formatCompactNumber } from "@/lib/format";
+
+const CategoryDistributionChart = dynamic(
+  () =>
+    import("@/features/dashboard/category-distribution-chart").then(
+      (mod) => mod.CategoryDistributionChart,
+    ),
+  {
+    ssr: false,
+    loading: () => <ChartFallback />,
+  },
+);
 
 const dashboardRegion = {
   sido: "서울특별시",
@@ -250,6 +261,10 @@ function EmptyChart() {
       분석할 점포 데이터가 없습니다.
     </div>
   );
+}
+
+function ChartFallback() {
+  return <div className="h-80 w-full animate-pulse rounded-md bg-slate-50" />;
 }
 
 function BarChart3Icon() {

@@ -1,0 +1,1175 @@
+{
+  "status": "measured",
+  "generatedAt": "2026-06-17T00:53:42.557Z",
+  "source": "scripts/performance/utils/collect-bff-metrics.mjs",
+  "label": "before",
+  "gitRef": "e224462",
+  "baseUrl": "http://localhost:3101",
+  "results": [
+    {
+      "route": "/dashboard",
+      "status": "measured",
+      "error": null,
+      "elapsedMs": 1729,
+      "requestCount": 73,
+      "responseCount": 68,
+      "apiRequestCount": 5,
+      "bffRequestCount": 0,
+      "browserMetrics": {
+        "lcpMs": 72,
+        "cls": 0,
+        "tbtMs": 0,
+        "jsTransferSizeBytes": 762646,
+        "initialLoadCompleteMs": 121.90000000596046,
+        "networkWaterfallMs": 1141.7000000178814
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2",
+          "resourceType": "font"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2",
+          "resourceType": "font"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0ib51f.ehzkdh.css",
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0yav843l7v505.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/02obz_1cdowwb.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0.wo3dyadq.5c.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0zc.h7ldjv3v3.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/08kgxo61qiela.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0rb.135sfj2gt.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/turbopack-05tws6lfb1zfz.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0e_b3mn3_053z.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/06wqvxkctvlyl.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/01-reiyplxr2y.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-0t~k~5dgl~g.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0ko7ax07dht_p.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/13lke1gnuvm9k.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0khaen-lw.vs0.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analysis/summary",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analysis/category-distribution",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/12kivwdk9urf~.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0axmcjsuvzv4k.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0t5zk207_02d8.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/03~bnnzzwrmt6.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/03msqtcc6b8~_.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-tbvez5c3kcf.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0snpaebse8v~4.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0nmmv-0_zoyf8.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0bd1_xabwzca1.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-ifug693mgr0.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0aa6uzr5lqpbv.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/15eokpq34_fqa.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/09iqk516u8gnu.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analysis/category-distribution",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analysis/summary",
+          "resourceType": "fetch"
+        }
+      ]
+    },
+    {
+      "route": "/compare",
+      "status": "measured",
+      "error": null,
+      "elapsedMs": 1657,
+      "requestCount": 73,
+      "responseCount": 68,
+      "apiRequestCount": 5,
+      "bffRequestCount": 0,
+      "browserMetrics": {
+        "lcpMs": 108,
+        "cls": 0,
+        "tbtMs": 0,
+        "jsTransferSizeBytes": 762646,
+        "initialLoadCompleteMs": 60.099999994039536,
+        "networkWaterfallMs": 1104.699999988079
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2",
+          "resourceType": "font"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2",
+          "resourceType": "font"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0ib51f.ehzkdh.css",
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0yav843l7v505.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/02obz_1cdowwb.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0.wo3dyadq.5c.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0zc.h7ldjv3v3.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/08kgxo61qiela.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0rb.135sfj2gt.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/turbopack-05tws6lfb1zfz.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0e_b3mn3_053z.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/06wqvxkctvlyl.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/01-reiyplxr2y.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-0t~k~5dgl~g.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0nmmv-0_zoyf8.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0bd1_xabwzca1.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-ifug693mgr0.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0khaen-lw.vs0.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/master/regions",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/master/categories",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/12kivwdk9urf~.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0axmcjsuvzv4k.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0t5zk207_02d8.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/03~bnnzzwrmt6.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/03msqtcc6b8~_.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-tbvez5c3kcf.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0snpaebse8v~4.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0aa6uzr5lqpbv.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/13lke1gnuvm9k.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/15eokpq34_fqa.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/09iqk516u8gnu.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0ko7ax07dht_p.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/api/master/regions",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/master/categories",
+          "resourceType": "fetch"
+        }
+      ]
+    },
+    {
+      "route": "/stores",
+      "status": "measured",
+      "error": null,
+      "elapsedMs": 1678,
+      "requestCount": 75,
+      "responseCount": 68,
+      "apiRequestCount": 7,
+      "bffRequestCount": 0,
+      "browserMetrics": {
+        "lcpMs": 164,
+        "cls": 0.03397361585828993,
+        "tbtMs": 0,
+        "jsTransferSizeBytes": 762646,
+        "initialLoadCompleteMs": 59.5,
+        "networkWaterfallMs": 1118.300000011921
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2",
+          "resourceType": "font"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2",
+          "resourceType": "font"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0ib51f.ehzkdh.css",
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0yav843l7v505.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/02obz_1cdowwb.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0.wo3dyadq.5c.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0zc.h7ldjv3v3.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/08kgxo61qiela.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0rb.135sfj2gt.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/turbopack-05tws6lfb1zfz.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0e_b3mn3_053z.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/06wqvxkctvlyl.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/01-reiyplxr2y.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-0t~k~5dgl~g.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0khaen-lw.vs0.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/15eokpq34_fqa.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/09iqk516u8gnu.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0t5zk207_02d8.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/stores/categories",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/regions",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/map",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/03msqtcc6b8~_.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-tbvez5c3kcf.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0snpaebse8v~4.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api-setup",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/12kivwdk9urf~.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/data-sync",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/compare",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0axmcjsuvzv4k.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/03~bnnzzwrmt6.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/analysis",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0nmmv-0_zoyf8.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0bd1_xabwzca1.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0-ifug693mgr0.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/stores",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0aa6uzr5lqpbv.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/13lke1gnuvm9k.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/dashboard",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/admin/login",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/_next/static/chunks/0ko7ax07dht_p.js",
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "path": "/api/stores/categories",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/regions",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/stores",
+          "resourceType": "fetch"
+        }
+      ]
+    }
+  ]
+}

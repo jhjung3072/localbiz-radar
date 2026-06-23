@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-06-17T04:43:05.131Z",
+  "source": "apps/web/e2e/a11y-performance-report.spec.ts",
+  "results": [
+    {
+      "route": "/",
+      "status": "measured",
+      "counts": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "violationIds": []
+    },
+    {
+      "route": "/dashboard",
+      "status": "measured",
+      "counts": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "violationIds": []
+    },
+    {
+      "route": "/stores",
+      "status": "measured",
+      "counts": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "violationIds": [
+        "scrollable-region-focusable"
+      ]
+    },
+    {
+      "route": "/map",
+      "status": "measured",
+      "counts": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "violationIds": []
+    },
+    {
+      "route": "/compare",
+      "status": "measured",
+      "counts": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "violationIds": []
+    },
+    {
+      "route": "/reports/compare?baseCtprvnCd=11&baseSignguCd=11680&targetCtprvnCd=11&targetSignguCd=11440",
+      "status": "measured",
+      "counts": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "violationIds": []
+    },
+    {
+      "route": "/admin/login",
+      "status": "measured",
+      "counts": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "violationIds": []
+    }
+  ]
+}

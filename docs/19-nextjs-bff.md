@@ -22,7 +22,7 @@ Next.js BFF 책임:
 
 - 화면 단위 API 응답 조합
 - Server Component 초기 데이터 fetch
-- React Query `initialData` 전달
+- React Query 초기 캐시 구성
 - admin BFF에서 Cookie header forwarding
 - BFF 표준 `{ data }`, `{ error }` 응답 변환
 - Sentry breadcrumb와 민감 정보 제거
@@ -102,7 +102,7 @@ apps/web/src/features/bff/server/
 - `/admin/ops`
 - `/data-sync`
 
-Client Component는 전달받은 값을 React Query `initialData`로 사용한다. 이후 사용자가 필터를 바꾸거나 페이지를 이동하면 기존 client-side Spring API 호출을 유지한다.
+Client Component는 서버에서 준비된 값을 React Query 초기 캐시로 사용한다. 이후 사용자가 필터를 바꾸거나 페이지를 이동하면 기존 client-side Spring API 호출을 유지한다.
 
 ## Cookie forwarding
 

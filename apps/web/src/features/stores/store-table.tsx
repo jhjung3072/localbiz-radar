@@ -46,7 +46,6 @@ import {
 import { VirtualizedStoreList } from "@/features/stores/components/virtualized-store-list";
 import type { StoresBffData } from "@/features/bff/server/types";
 import type { StoreListItem, StoreSearchParams } from "@/features/stores/types";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { addSafeBreadcrumb } from "@/lib/sentry-utils";
 
 const baseColumns: ColumnDef<StoreListItem>[] = [
@@ -72,8 +71,6 @@ export function StoreTable({ initialData }: StoreTableProps) {
   const { query, setQuery, replaceQuery, pathname } = useExploreUrlState();
   const [keywordInput, setKeywordInput] = useState(query.keyword);
   const keywordInputRef = useRef<HTMLInputElement>(null);
-  const lastSubmittedKeywordRef = useRef(query.keyword);
-  const debouncedKeywordInput = useDebouncedValue(keywordInput, 450);
   const candidateTray = useCandidateTray();
   const recentSearches = useRecentSearches();
 
@@ -199,25 +196,7 @@ export function StoreTable({ initialData }: StoreTableProps) {
 
   useEffect(() => {
     setKeywordInput(query.keyword);
-    lastSubmittedKeywordRef.current = query.keyword;
   }, [query.keyword]);
-
-  useEffect(() => {
-    const nextKeyword = debouncedKeywordInput.trim();
-    if (
-      nextKeyword === query.keyword ||
-      nextKeyword === lastSubmittedKeywordRef.current
-    ) {
-      return;
-    }
-
-    lastSubmittedKeywordRef.current = nextKeyword;
-    addSafeBreadcrumb("stores.debounced-search", "점포 검색 debounce 반영", {
-      hasKeyword: nextKeyword.length > 0,
-      keywordLength: nextKeyword.length,
-    });
-    setQuery({ keyword: nextKeyword, page: 0 }, { replace: true });
-  }, [debouncedKeywordInput, query.keyword, setQuery]);
 
   useEffect(() => {
     addSafeBreadcrumb("stores.search", "점포 목록 조회 조건 변경", {
@@ -250,7 +229,6 @@ export function StoreTable({ initialData }: StoreTableProps) {
       hasKeyword: nextKeyword.length > 0,
       keywordLength: nextKeyword.length,
     });
-    lastSubmittedKeywordRef.current = nextKeyword;
     setKeywordInput(nextKeyword);
     setQuery({ keyword: nextKeyword, page: 0 });
     recentSearches.saveSearch({
@@ -415,7 +393,7 @@ export function StoreTable({ initialData }: StoreTableProps) {
               inputRef={keywordInputRef}
               onChange={setKeywordInput}
               placeholder="상호명, 업종, 주소 검색"
-              debounceLabel="입력 후 잠시 멈추면 검색 조건이 자동 반영됩니다."
+              debounceLabel="Enter 또는 검색 버튼으로 검색 조건을 반영합니다."
             />
           </form>
 

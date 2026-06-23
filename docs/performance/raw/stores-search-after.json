@@ -1,0 +1,21 @@
+{
+  "status": "measured",
+  "results": [
+    {
+      "route": "/stores",
+      "status": "measured",
+      "scenario": "slow typing with Enter submit after initial browser API settled",
+      "searchTerm": "coffee",
+      "inputDelayMs": 600,
+      "apiStoreRequestCount": 1,
+      "apiStoreRequests": [
+        "/api/stores?keyword=coffee&page=0&size=10"
+      ],
+      "elapsedMs": 7077.650459
+    }
+  ],
+  "generatedAt": "2026-06-17T05:01:46.124Z",
+  "source": "scripts/performance/utils/measure-stores-search.mjs",
+  "label": "current",
+  "baseUrl": "http://localhost:3100"
+}
